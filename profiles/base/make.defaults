@@ -1,0 +1,14 @@
+CHROMEOS_KERNEL_ARCH="x86_64"
+MARCH_TUNE="-march=x86-64 -msse3"
+
+USE=""
+
+USE="${USE} containers device_jail"
+
+USE="${USE} legacy_keyboard legacy_power_button sse kernel-4_4"
+
+# Enable all optional features on generic overlays.
+USE="${USE} buffet peerd"
+
+# Enable a few more video cards as this is a generic board.
+VIDEO_CARDS="intel i915 i965"
