@@ -1,0 +1,107 @@
+#!/bin/bash
+DUAL_BOOT_DIR="/usr/share/dualboot"
+. $DUAL_BOOT_DIR/fydeos_util.sh
+set -e
+
+print_usage() {
+    echo "Usage: $0 -d | --dst <target disk device>
+
+The target disk must be using GPT partition table, have a EFI system partition, and have installed FydeOS with dual-boot mode.
+
+Make ture you have backup all your personal files on FydeOS account, Or will losed after running."
+
+    exit
+}
+
+precheck_part_table() {
+    if [[ -z "$(gdisk -l $target_disk | grep 'GPT: present')" ]]; then
+        die "This script currently supports GPT partitioned disk only."
+    fi
+}
+
+delete_bootloader() {
+    local esp_dev=$(cgpt find -t efi $target_disk)
+    local esp_mnt=$(mktemp -d -p /tmp fydeos.XXXXXX)
+    local fydedir=$esp_mnt/efi/fydeos
+    local bootdir=$esp_mnt/efi/boot
+    if [ -z "$esp_dev" ]; then
+        return
+    fi
+    if mount $esp_dev $esp_mnt; then
+        if [ -f $fydedir/bootx64.efi ]; then
+            if [ -f $bootdir/bootx64.efi ]; then
+                if cmp_files $bootdir/bootx64.efi $fydedir/bootx64.efi; then
+                    rm $bootdir/bootx64.efi $bootdir/grub.cfg $bootdir/os_fydeos.png || true
+                fi
+                [ -z "$(ls $bootdir)" ] && rmdir $bootdir
+            fi
+            rm -rf $fydedir
+        fi
+        umount $esp_dev
+        rmdir $esp_mnt
+    else
+        die "mount $esp_dev error."
+    fi    
+}
+
+userconfirm() {
+    # Ask for confirmation before start to install
+    flog "This will remove FydeOS from $target_disk."
+    flog "All partitions blong to FydeOS will be deleted, all your files in FydeOS state partition will be destoried."
+    flog -e "\nPlease confirm you are aware of the risks of losing data during the process and have made necessary backup.\n"
+
+    local sure
+    read -p "Are you sure to proceed (y/N)? " sure
+    if [[ "${sure}" != "y" ]]; then
+        echo -e "\nYou have chosed to not proceed, exiting..."
+        return 1
+    fi
+}
+
+delete_partions() {
+    local root_dev=$(find_partition_by_label $FYDEOS_ROOT_LABEL $target_disk)
+    local state_dev=$(find_partition_by_label $FYDEOS_STATE_LABEL $target_disk)
+    if [ -n "$root_dev" ]; then
+        flog "Deleting $root_dev"
+        sgdisk -d $(parse_partition_num $root_dev) $target_disk
+    fi
+    if [ -n "$state_dev" ]; then
+        flog "Deleting $state_dev"
+        sgdisk -d $(parse_partition_num $state_dev) $target_disk
+    fi
+}
+
+dualboot_remove() {
+    flog_init
+    precheck_part_table
+    userconfirm
+    delete_bootloader
+    delete_partions
+    flog "FydeOS was removed form $target_disk successfully."
+}
+
+
+declare target_disk
+
+if [[ $(id -u) -ne 0 ]]; then
+    die "You must be root to run this script."
+fi
+
+
+[[ $# -le 1 ]] && print_usage
+while [[ $# -gt 1 ]]; do
+    opt=$1
+
+    case $opt in
+        -d | --dst )
+            target_disk=$2
+            dualboot_remove
+            shift
+            ;;
+        * )
+            print_usage
+            ;;
+    esac
+
+    shift
+done

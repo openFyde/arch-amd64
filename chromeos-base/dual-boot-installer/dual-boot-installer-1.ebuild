@@ -1,11 +1,7 @@
 EAPI=5
 
-inherit git-2
-
-DESCRIPTION="Script to install dual bootable FlintOS along with existing OS."
-HOMEPAGE="http://flintos.io"
-EGIT_REPO_URI="git@gitlab.fydeos.xyz:pc/dual-boot-pc.git"
-EGIT_BRANCH="master"
+DESCRIPTION="Script to install dual bootable FydeOS along with existing OS."
+HOMEPAGE="https://fydeos.com"
 
 SLOT="0"
 KEYWORDS="amd64 x86"
@@ -21,9 +17,18 @@ DEPEND="
 	${RDEPEND}
 "
 
-src_install() {
-	insinto /usr/share/dual-boot-installer
-	doins -r refind-bin-flintos-0.10.8/refind
+S=${WORKDIR}
 
-	dosbin ${FILESDIR}/dual-boot-install.sh
+src_install() {
+    local dual_dir=${FILESDIR}/dualboot
+	insinto /usr/share/dualboot
+	doins -r ${dual_dir}/fydeos
+    doins ${dual_dir}/script/*.sh
+    doins ${dual_dir}/script/*.override
+    insinto /boot
+    doins ${dual_dir}/boot/*
+    exeinto /usr/sbin
+	doexe ${dual_dir}/script/dual-boot-install
+    doexe ${dual_dir}/script/dual-boot-remove
+    doexe ${dual_dir}/script/fix_write_gpt
 }
