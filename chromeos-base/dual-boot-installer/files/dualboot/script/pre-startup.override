@@ -19,4 +19,5 @@ script
   mount -n -t tmpfs -o mode=0755,nodev,noexec,nosuid run /run
   mkdir -m 1777 /run/lock
   /usr/sbin/fix_write_gpt
+  sleep 3
 end script

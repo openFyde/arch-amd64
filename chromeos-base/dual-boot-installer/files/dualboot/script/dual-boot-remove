@@ -39,6 +39,7 @@ delete_bootloader() {
         fi
         umount $esp_dev
         rmdir $esp_mnt
+        flog "FydeOS boot loader is removed."
     else
         die "mount $esp_dev error."
     fi    

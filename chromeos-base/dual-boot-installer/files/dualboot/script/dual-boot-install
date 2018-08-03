@@ -139,19 +139,19 @@ create_statefs() {
 install_mkpart() {
 	# Stop CrOS disk mounting daemon first. It may operate on disks in the background thus could
 	# interfere with below partition operations. No proof yet, just in case.
-	initctl stop cros-disks
+	flog $(initctl stop cros-disks)
 
 	flog "Creating/Check partitions on target disk $target_disk"
-
     create_rootfs
     create_statefs
-	sleep 2
-
 	# Re-read parition table, yeah this is dirty.
-	blockdev --rereadpt $target_disk || /bin/true
-
+    until blockdev --rereadpt $target_disk >null 2>&1;
+    do
+        sleep 2
+    done
+    flog "All paritions are created."
 	# Re-start the disk mounting daemon
-	initctl start cros-disks
+	flog $(initctl start cros-disks)
 }
 
 # Install rootfs to disk
