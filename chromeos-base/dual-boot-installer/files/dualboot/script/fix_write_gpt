@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 DUAL_BOOT_DIR="/usr/share/dualboot"
 . $DUAL_BOOT_DIR/fydeos_util.sh
 
@@ -11,5 +12,7 @@ root_disk=$(rootdev -d)
 tmp_gpt=$(create_tmp_gpt_conf $gpt_cnf $root_disk)
 
 if ! cmp_files $tmp_gpt $gpt_cnf; then
+    mount -o remount rw /
     cp $tmp_gpt $gpt_cnf
+    mount -o remount ro /
 fi
