@@ -145,7 +145,7 @@ install_mkpart() {
     create_rootfs
     create_statefs
 	# Re-read parition table, yeah this is dirty.
-    until blockdev --rereadpt $target_disk >null 2>&1;
+    until blockdev --rereadpt $target_disk > /dev/null 2>&1;
     do
         sleep 2
     done
