@@ -184,9 +184,9 @@ install_stateful() {
 	mount $state_dev ${target_state}
 
 	flog "Copying over necessary files to the new stateful partition..."
-	[[ -f ${source_state}/vmlinuz_hd.vblock ]] && cp ${source_state}/vmlinuz_hd.vblock ${target_state}
+	[[ -f ${source_state}/vmlinuz_hd.vblock ]] && [[ ! -f ${target_state}/vmlinuz_hd.vblock ]] && cp ${source_state}/vmlinuz_hd.vblock ${target_state}
 	[[ -d ${source_state}/dev_image ]] && cp -a ${source_state}/dev_image ${target_state}
-	[[ -d ${source_state}/var_overlay ]] && cp -a ${source_state}/var_overlay ${target_state}
+	[[ -d ${source_state}/var_overlay ]] && [[ ! -d ${target_state}/var_overlay ]]  && cp -a ${source_state}/var_overlay ${target_state}
 
 	umount ${target_state}
     rmdir ${target_state}
