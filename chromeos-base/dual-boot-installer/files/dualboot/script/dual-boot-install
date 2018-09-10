@@ -2,6 +2,7 @@
 # vim: noexpandtab:ts=4:sw=4
 VERSION="1.0.1"
 DUAL_BOOT_DIR="/usr/share/dualboot"
+UPDATE_STATE=false
 # Stop executing the script on error
 set -e
 
@@ -81,6 +82,7 @@ precheck_space() {
         fi
     else
         flog "Old FydeOS found, check partitions for update"
+        UPDATE_STATE=true
         local root=$(find_fydeos_root)        
         if [[ $(get_target_sectors $root) -lt $(get_rootfs_sectors) ]]; then
             flog "The old FydeOS partition is smaller than the new version"
@@ -190,10 +192,12 @@ install_stateful() {
 	mount $state_dev ${target_state}
 
 	flog "Copying over necessary files to the new stateful partition..."
-	[[ -f ${source_state}/vmlinuz_hd.vblock ]] && [[ ! -f ${target_state}/vmlinuz_hd.vblock ]] && cp ${source_state}/vmlinuz_hd.vblock ${target_state}
 	[[ -d ${source_state}/dev_image ]] && cp -a ${source_state}/dev_image ${target_state}
 	[[ -d ${source_state}/var_overlay ]] && [[ ! -d ${target_state}/var_overlay ]]  && cp -a ${source_state}/var_overlay ${target_state}
-
+    if $UPDATE_STATE;then
+        [ -d ${target_state}/etc ] || mkdir ${target_state}/etc
+        cp $DUAL_BOOT_DIR/update_manager.conf ${target_state}/etc
+    fi
 	umount ${target_state}
     rmdir ${target_state}
 }
@@ -202,11 +206,15 @@ install_stateful() {
 install_efi_fydeos() {
     local target_dir=$1/efi/fydeos
     local source_dir=$DUAL_BOOT_DIR/fydeos
+    local tmp_cfg=/tmp/grub.cfg
     [ -d $target_dir ] || mkdir -p $target_dir
     cp $source_dir/bootx64.efi $target_dir
     cp $source_dir/os_fydeos.png $target_dir
+    [ -f $tmp_cfg ] && rm $tmp_cfg
     sed -e "s/%PARTUUID%/$(get_partuuid $root_a_dev)/g" \
-        $source_dir/grub.cfg.tpl > $target_dir/grub.cfg
+        $source_dir/grub.cfg.tpl > $tmp_cfg
+    cp $tmp_cfg $target_dir
+    rm $tmp_cfg
     flog "Boot loader is installed to /efi/fydeos"
 }
 
