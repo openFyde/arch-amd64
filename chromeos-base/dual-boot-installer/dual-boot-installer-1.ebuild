@@ -25,7 +25,7 @@ src_install() {
 	doins -r ${dual_dir}/fydeos
     doins ${dual_dir}/script/*.sh
     doins ${dual_dir}/script/*.override
-    doins ${dual-dir}/script/update_manager.conf
+    doins ${dual_dir}/script/update_manager.conf
     insinto /boot
     doins ${dual_dir}/boot/*
     exeinto /usr/sbin
