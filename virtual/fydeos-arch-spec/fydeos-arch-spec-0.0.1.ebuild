@@ -9,11 +9,11 @@ HOMEPAGE="http://fydeos.com"
 LICENSE="BSD"
 SLOT="0"
 KEYWORDS="*"
-IUSE=""
+IUSE="+dual_boot"
 
 RDEPEND="
-    sys-boot/efibootmgr
-    chromeos-base/dual-boot-installer
+    dual_boot? ( sys-boot/efibootmgr )
+    dual_boot? ( chromeos-base/dual-boot-installer )
 "
 
 DEPEND="${RDEPEND}"
