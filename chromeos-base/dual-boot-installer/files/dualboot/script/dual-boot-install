@@ -1,6 +1,6 @@
 #!/bin/bash
 # vim: noexpandtab:ts=4:sw=4
-VERSION="1.0.1"
+VERSION="1.0.2"
 DUAL_BOOT_DIR="/usr/share/dualboot"
 UPDATE_STATE=false
 # Stop executing the script on error
@@ -16,7 +16,7 @@ print_version() {
 #### Print usage help text and exit
 print_usage() {
     print_version
-	echo "Usage: $0 -d | --dst <target disk device>
+	echo "Usage: $0 [-y] -d | --dst <target disk device>
 
 The system must boot in UEFI mode. The target disk must be using GPT partition table, have a EFI system partition, and have at least 8GB of free space.
 
@@ -329,7 +329,7 @@ dualboot_install() {
     flog $(print_version)
 	precheck
 	printcfg
-	userconfirm
+	[ -z "${force_install}" ] && userconfirm
 	install
 	flog "Installation finished successfully."
 }
@@ -344,6 +344,7 @@ declare target_disk
 declare root_a_dev
 declare esp_dev
 declare state_dev
+declare force_install
 
 # The number of each partitions on target disk
 declare -i root_a_num
@@ -370,6 +371,9 @@ while [[ $# -gt 1 ]]; do
 			target_disk=$2
 			dualboot_install
 			shift
+			;;
+		-y )
+			force_install="yes"
 			;;
 		* )
 			print_usage

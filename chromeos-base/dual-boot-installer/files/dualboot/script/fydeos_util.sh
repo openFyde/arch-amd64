@@ -9,10 +9,11 @@ is_dualboot() {
 
 # get disk device from partition device.
 # para $1: /dev/sda1 return /dev/sda    $1: /dev/mmcblk0p3 return /dev/mmcblk0
+# para $1: /dev/nvme0n1p10 return /dev/nvme0n1
 parse_disk_dev() {
     local disk=$1
     local disk=$(echo $1 | sed 's/[0-9_]*$//')
-    if [ -n "$(echo $disk | grep mmcblk)" ]; then
+    if [ -z "$(echo $disk | grep sd)" ]; then
         disk=${disk%p}
     fi
     echo $disk
@@ -36,6 +37,7 @@ find_partition_by_label() {
 
 
 # $1 as /dev/mmcblk0p12 return 12
+# $1 as /dev/nvme0n1p10 return 10
 parse_partition_num() {
     local dev=$1
     echo ${dev##*[a-z]}
