@@ -164,7 +164,7 @@ install_mkpart() {
 
 # Install rootfs to disk
 install_rootfs() {
-	flog "Installing root filesysteem on $root_a_dev ..."
+	flog "Installing root filesystem on $root_a_dev ..."
 	dd if=$boot_rootdev of=$root_a_dev bs=1M status=progress
 	config_rootfs $root_a_dev
 }
@@ -192,14 +192,14 @@ install_stateful() {
 	mount $state_dev ${target_state}
 
 	flog "Copying over necessary files to the new stateful partition..."
-	[[ -d ${source_state}/dev_image ]] && cp -a ${source_state}/dev_image ${target_state}
-	[[ -d ${source_state}/var_overlay ]] && [[ ! -d ${target_state}/var_overlay ]]  && cp -a ${source_state}/var_overlay ${target_state}
+	[[ -d ${source_state}/dev_image ]] && cp -a ${source_state}/dev_image ${target_state} > /dev/null
+	[[ -d ${source_state}/var_overlay ]] && [[ ! -d ${target_state}/var_overlay ]]  && cp -a ${source_state}/var_overlay ${target_state} > /dev/null
     if $UPDATE_STATE;then
-        [ -d ${target_state}/etc ] || mkdir ${target_state}/etc
-        cp $DUAL_BOOT_DIR/update_manager.conf ${target_state}/etc
+        [ -d ${target_state}/etc ] || mkdir ${target_state}/etc > /dev/null
+        cp $DUAL_BOOT_DIR/update_manager.conf ${target_state}/etc > /dev/null
     fi
-	umount ${target_state}
-    rmdir ${target_state}
+	umount ${target_state} > /dev/null
+    rmdir ${target_state} > /dev/null 2>&1 || true
 }
 
 # Install  boot loader
