@@ -1,15 +1,23 @@
-#FydeOS 2018-08-02 Author: yang@fydeos.io
+#FydeOS 2018-12-29 Author: yang@fydeos.io
 set default=0
 set timeout=1
 
 # NOTE: find rootfs by label (not partion label)
-search --label --set root FYDEOS-ROOT-A
 
-menuentry "FydeOS" {
-  linux /boot/vmlinuz init=/sbin/init root=PARTUUID=%PARTUUID% boot=local noinitrd rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug fydeos_dualboot 
+menuentry "FydeOS DualBoot" {
+  search --label --set root FYDEOS-DUAL-BOOT
+  linux /boot/fydeos_vmlinuzA init=/sbin/init root=%ROOTDEV% boot=local noinitrd rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug fydeos_dualboot
+  initrd /boot/dual_boot_ramfs.cpio.xz
 }
 
-menuentry "Recovery tools" {
-  linux /boot/vmlinuz.core loglevel=3
-  initrd /boot/core.gz
+menuentry "FydeOS DualBoot Backup" {
+  search --label --set root FYDEOS-DUAL-BOOT
+  linux /boot/fydeos_vmlinuzB init=/sbin/init root=%ROOTDEV% boot=local noinitrd rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug fydeos_dualboot
+  initrd /boot/dual_boot_ramfs.cpio.xz
+}
+
+menuentry "FydeOS Recovery Tools" {
+  search --label --set root FYDEOS-DUAL-BOOT
+  linux /boot/fydeos_vmlinuzB init=/sbin/init root=%ROOTDEV% boot=local noinitrd rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug
+  initrd /boot/core_util_ramfs.cpio.xz
 }

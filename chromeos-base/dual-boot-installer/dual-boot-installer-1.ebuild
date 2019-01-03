@@ -15,21 +15,29 @@ RDEPEND="
 
 DEPEND="
 	${RDEPEND}
+	chromeos-base/chromeos-initramfs
+	chromeos-base/chromeos-installer
 "
 
 S=${WORKDIR}
 
+src_compile() {
+    cat ${SYSROOT}/usr/sbin/chromeos-install | \
+	   sed -e "s/\/sbin\/blockdev\ --rereadpt/partx\ -a/g" > \
+	   chromeos-install.sh
+}
+
 src_install() {
     local dual_dir=${FILESDIR}/dualboot
-	insinto /usr/share/dualboot
-	doins -r ${dual_dir}/fydeos
-    doins ${dual_dir}/script/*.sh
-    doins ${dual_dir}/script/*.override
-    doins ${dual_dir}/script/update_manager.conf
-    insinto /boot
-    doins ${dual_dir}/boot/*
-    exeinto /usr/sbin
-	doexe ${dual_dir}/script/dual-boot-install
-    doexe ${dual_dir}/script/dual-boot-remove
-    doexe ${dual_dir}/script/fix_write_gpt
+    insinto /usr/share/dualboot
+    doins -r ${dual_dir}/fydeos
+    doins -r ${dual_dir}/refind
+    doins ${dual_dir}/script/BOOT.CSV
+
+    exeinto /usr/share/dualboot
+    doexe ${dual_dir}/script/*.sh
+    doexe chromeos-install.sh
+
+    insinto /usr/share/dualboot/initrd
+    doins ${SYSROOT}/var/lib/initramfs/*.xz
 }
