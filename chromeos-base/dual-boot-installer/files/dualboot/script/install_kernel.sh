@@ -1,5 +1,4 @@
 #!/bin/bash
-VERSION="2.0.0"
 DUAL_SCRIPT_DIR="/usr/share/dualboot"
 BOOT_DIR="/boot"
 KERNEL_A="fydeos_vmlinuzA"
@@ -22,7 +21,7 @@ print_usage() {
        Example: 
            $SELF -d /dev/sda5    #partition device as target
            $SELF -d /mnt/sda5    #mount point as target
-           $SEFL                 #find the partition itself as target
+           $SELF                 #find the partition itself as target
        "
 }
 

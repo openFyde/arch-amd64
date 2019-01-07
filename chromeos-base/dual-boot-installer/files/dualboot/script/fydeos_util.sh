@@ -5,6 +5,7 @@ LOG_MOD=fydeos_dualboot
 LOG_FILE=/tmp/fydeos_dualboot.log
 DUALBOOT_DIR="/fydeos"
 DUALBOOT_IMG="${DUALBOOT_DIR}/fydeos_dual_boot.img"
+VERSION="2.0.0"
 # test if system in dualboot mode
 is_dualboot() {
     [ -n "$(grep fydeos_dualboot /proc/cmdline)" ]

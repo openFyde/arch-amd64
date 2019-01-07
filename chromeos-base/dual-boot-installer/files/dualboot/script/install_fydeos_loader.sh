@@ -1,5 +1,4 @@
 #!/bin/bash
-VERSION="2.0.0"
 DUAL_SCRIPT_DIR="/usr/share/dualboot"
 BOOT_LOADER_DIR="/usr/share/dualboot/fydeos"
 BOOT_FILES="bootx64.efi os_fydeos.png"
@@ -24,7 +23,7 @@ print_usage() {
        Example: 
            $SELF -d /dev/sda1    #partition device as target
            $SELF -d /mnt/sda1    #mount point as target
-           $SEFL                 #find the ESP partition as target
+           $SELF                 #find the ESP partition as target
        "
 }
 
