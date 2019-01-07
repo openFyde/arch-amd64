@@ -1,5 +1,6 @@
 #!/bin/bash
 DUALBOOT_LABEL="FYDEOS-DUAL-BOOT"
+CHROME_INSTALL_CMD="/usr/share/dualboot/chromeos-install.sh"
 LOG_MOD=fydeos_dualboot
 LOG_FILE=/tmp/fydeos_dualboot.log
 DUALBOOT_DIR="/fydeos"
@@ -119,20 +120,32 @@ get_partition_free_space() {
 }
 
 create_dualboot_image() {
-    local mnt_dir=$1
+    local part_dev=$1
+	info_init "/tmp/create_image.log" 
+    local mnt_dir=$(get_mnt_of_part $part_dev)
     create_dir ${mnt_dir}${DUALBOOT_DIR}
     local img="${mnt_dir}${DUALBOOT_IMG}"
     local partdev=$(rootdev ${mnt_dir})
     local freespace=$(get_partition_free_space $partdev)
     local imgspace=$(($freespace/100*100 - 1024*100))
-    if [ $imgspace -lt $((1024*1024*10)) ];then
+    if [ $imgspace -lt $((1024*1024*9)) ];then
         die "need more freespace to create image"
     fi
     if [ -f $img ];then
         rm -f $img      
     fi
+	info "Create dual boot image..."
     fallocate -l $(($imgspace*1024)) $img
-    echo $img
+    info "Allocate :${img}"
+	local loopdev=$(load_img_to_dev $img)
+	info "Install image..."
+	${CHROME_INSTALL_CMD} --yes --dst ${loopdev}
+	info "Recycle system resources..."
+	partx -d ${loopdev}
+	losetup -d ${loopdev}
+	unmount ${mnt_dir}
+	rmdir ${mnt_dir}
+	info "Done."
 }
 
 load_img_to_dev() {
@@ -155,6 +168,14 @@ get_dualboot_part() {
     cgpt find -l $DUALBOOT_LABEL
 }
 
+set_dualboot_part() {
+    local part_dev=$1
+    if [ -z "$(get_dualboot_part)" ];then
+        cgpt add -i $(parse_partition_num $part_dev) -l $DUALBOOT_LABEL $(parse_disk_dev $part_dev)
+    fi
+    sync_label $part_dev
+}
+
 get_efi_part() {
     cgpt find -t C12A7328-F81F-11D2-BA4B-00A0C93EC93B
 }
@@ -164,7 +185,7 @@ get_mnt_of_part() {
     [ ! -b $partdev ] && die "device:${1} doesn't exist"
     local mntdir=$(lsblk -o mountpoint -l -n $partdev)
     if [ -z "${mntdir}" ];then
-        mntdir=$(mktemp -d -p /tmp ${LOG_MOD}XXXXX)
+        mntdir=$(mktemp -d -p /tmp ${LOG_MOD}_XXXXX)
         mount $partdev $mntdir
     fi
     echo $mntdir
@@ -185,24 +206,22 @@ get_first_boot_entry() {
 
 convert_efi_path() {
     local sys_path=$1
-    local efi_path=`echo ${sys_path//\//\\\}`
-    echo ${efi_path}
+    echo ${sys_path//\//\\\\}
 }
 
 convert_efi_path2() {
     local sys_path=$1
-    local efi_path=$(convert_efi_path $sys_path)
-    efi_path=`echo $efi_path | sed s/\\\\\\\\/\\\\\\\\\\\\\\\\/g`
-    echo ${efi_path}  
+    echo ${sys_path//\//\\}
 }
 
 is_efi_in_boot_entries() {
-    local efi_path=$(convert_efi_path2 $1)
-    [ -n "$(efibootmgr | grep -i "$efi_path")" ]    
+    local efi_path=$(convert_efi_path $1)
+    local efi_info=$(efibootmgr -v | grep -i "$efi_path")
+    [ -n "${efi_info}" ]    
 }
 
 get_boot_entry_by_path() {
-    local efi_path=$(convert_efi_path2 $1)
+    local efi_path=$(convert_efi_path $1)
     local entry=$(efibootmgr -v | grep -i "$efi_path" | head -n 1)
     echo $entry | cut -c 5-8    
 }
@@ -216,20 +235,44 @@ list_all_efi() {
 }
 
 is_efi_first_boot_entry() {
-    local efi_path=$(convert_efi_path2 $1)
+    local efi_path=$(convert_efi_path $1)
     local first_boot=$(get_first_boot_entry)
     [ -n "$(efibootmgr | grep -i "$efi_path" | grep "Boot$first_boot")" ]
 }
 
 create_entry() {
-    local efi_path=$(convert_efi_path $1)
+    local efi_path=$(convert_efi_path2 $1)
     local label=$2
     local part_dev=$3
-    efibootmgr -c -l "${efi_path}" -L "${label}" -d "$(parse_disk_dev $part_dev)" \
+    efibootmgr -c -l ${efi_path} -L "${label}" -d "$(parse_disk_dev $part_dev)" \
         -p "$(parse_partition_num $part_dev)"        
+}
+
+safe_create_entry() {
+	local efi=$1
+    local label=$2
+    local part_dev=$3
+	if ! is_efi_in_boot_entries $efi; then
+		create_entry $efi "${label}" $part_dev
+	fi
 }
 
 remove_entry() {
     local efi_entry=$(get_boot_entry_by_path $1)
     efibootmgr -b $efi_entry -B
+}
+
+safe_format() {
+	local partdev=$1
+	log_init "/tmp/safe_format.log"
+    [ ! -b $partdev ] && die "device:${1} doesn't exist"
+    local mntdir=$(lsblk -o mountpoint -l -n $partdev)
+    if [ -n "${mntdir}" ];then
+		info "Unmount the partition"
+        umount $partdev || die "the partition is used."
+    fi
+	info "Format the partition:${partdev}"
+    mkfs.ext4 $partdev || die "mkfs error"
+	info "Modify dualboot partition label..."
+    set_dualboot_part $partdev
 }
