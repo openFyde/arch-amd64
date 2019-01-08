@@ -21,10 +21,19 @@ DEPEND="
 
 S=${WORKDIR}
 
+grub_args=(
+    -p "/efi/fydeos"
+    -c embedded.cfg
+    part_gpt test fat ext2 hfs hfsplus normal boot chain
+    efi_gop configfile linux search echo search
+  )
+
 src_compile() {
     cat ${SYSROOT}/usr/sbin/chromeos-install | \
 	   sed -e "s/\/sbin\/blockdev\ --rereadpt/partx\ -a/g" > \
 	   chromeos-install.sh
+    echo 'configfile $cmdpath/grub.cfg' > embedded.cfg
+	grub-mkimage -O x86_64-efi -o bootx64.efi "${grub_args[@]}"    
 }
 
 src_install() {
@@ -33,6 +42,9 @@ src_install() {
     doins -r ${dual_dir}/fydeos
     doins -r ${dual_dir}/refind
     doins ${dual_dir}/script/BOOT.CSV
+
+    insinto /usr/share/dualboot/fydeos
+    doins bootx64.efi
 
     exeinto /usr/share/dualboot
     doexe ${dual_dir}/script/*.sh
