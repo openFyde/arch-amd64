@@ -187,7 +187,12 @@ get_mnt_of_part() {
     local mntdir=$(lsblk -o mountpoint -l -n $partdev)
     if [ -z "${mntdir}" ];then
         mntdir=$(mktemp -d -p /tmp ${LOG_MOD}_XXXXX)
-        mount $partdev $mntdir
+        mount -w $partdev $mntdir
+    else
+        local ro=$(lsblk -o ro ${partdev} |tail -n1)
+        if [ $ro -eq 0 ]; then
+            mount -o remount,rw ${mntdir}
+        fi
     fi
     echo $mntdir
 }
@@ -238,7 +243,8 @@ list_all_efi() {
 is_efi_first_boot_entry() {
     local efi_path=$(convert_efi_path $1)
     local first_boot=$(get_first_boot_entry)
-    [ -n "$(efibootmgr | grep -i "$efi_path" | grep "Boot$first_boot")" ]
+    local boot_info=$(efibootmgr | grep -i "${efi_path}" | grep "Boot${first_boot}")
+    [ -n "${boot_info}" ]
 }
 
 create_entry() {

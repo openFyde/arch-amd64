@@ -77,13 +77,43 @@ FACTORY_NETBOOT_DEPENDS="
 	sys-libs/ncurses
 	virtual/udev
 	"
+FYDEOS_DEPENDS="
+	app-arch/lbzip2
+    app-arch/pigz
+    app-arch/sharutils
+    app-misc/jq
+    app-shells/bash
+    chromeos-base/chromeos-base
+    chromeos-base/chromeos-installer
+    chromeos-base/chromeos-storage-info
+    chromeos-base/ec-utils
+    chromeos-base/factory_installer
+    chromeos-base/vboot_reference
+    chromeos-base/vpd
+    dev-libs/openssl
+    dev-util/shflags
+    dev-util/xxd
+    net-misc/curl
+    net-misc/htpdate
+    net-misc/wget
+    sys-apps/coreutils
+    sys-apps/flashrom
+    sys-apps/iproute2
+    sys-apps/mosys
+    sys-apps/util-linux
+    sys-block/parted
+    sys-fs/dosfstools
+    sys-fs/e2fsprogs
+    sys-libs/ncurses
+    virtual/udev
+"
 
 DEPEND="
 	factory_netboot_ramfs? ( ${FACTORY_NETBOOT_DEPENDS} )
 	factory_shim_ramfs? ( ${FACTORY_SHIM_DEPENDS} )
 	recovery_ramfs? ( ${RECOVERY_DEPENDS} )
-	dual_boot_ramfs? ( ${FACTORY_NETBOOT_DEPENDS} )
-	core_util_ramfs? ( ${FACTORY_NETBOOT_DEPENDS} sys-apps/frecon-lite virtual/udev )
+	dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
+	core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
 	sys-apps/busybox[-make-symlinks]
 	sys-fs/lvm2
 	virtual/chromeos-bsp-initramfs

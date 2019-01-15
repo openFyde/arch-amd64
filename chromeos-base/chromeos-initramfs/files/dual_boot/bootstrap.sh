@@ -6,7 +6,6 @@
 # To bootstrap the factory installer on rootfs. This file must be executed as
 # PID=1 (exec).
 # Note that this script uses the busybox shell (not bash, not dash).
-set -x
 
 . /usr/sbin/factory_tty.sh
 . /bin/dual_boot_mount.sh
@@ -29,9 +28,13 @@ info() {
   echo "$@" | tee -a "${TTY}" "${LOG_FILE}"
 }
 
-is_cros_debug() {
-  grep -qw cros_debug /proc/cmdline 2>/dev/null
+is_fydeos_debug() {
+  grep -qw fydeos_debug /proc/cmdline 2>/dev/null
 }
+
+if [ -n "$(is_fydeos_debug)" ]; then
+    set -x
+fi
 
 invoke_terminal() {
   local tty="$1"
@@ -61,7 +64,7 @@ on_error() {
   info -e '\033[1;31m'
   info "ERROR: Factory installation aborted."
   save_log_files
-  enable_debug_console "${TTY}"
+  enable_debug_console "${DEBUG_TTY}"
   sleep 1d
   exit 1
 }
@@ -214,7 +217,7 @@ main() {
 
   # DEBUG_TTY may be not available, but we don't have better choices on headless
   # devices.
-  enable_debug_console "${DEBUG_TTY}"
+  #enable_debug_console "${DEBUG_TTY}"
 
   info "Bootstrapping dual boot overlay."
   
@@ -226,6 +229,7 @@ main() {
   # console open for debugging.
   killall frecon ||true
   killall udevd || true
+  killall less script || true
   NEWROOT_MNT=$loopdev_root 
   # Switch to the new root.
   use_new_root "$@"
@@ -233,6 +237,8 @@ main() {
   return 1
 }
 
-trap on_error EXIT
-set -e
+if [ -n "$(is_fydeos_debug)" ]; then
+  trap on_error EXIT
+  set -e
+fi
 main "$@"
