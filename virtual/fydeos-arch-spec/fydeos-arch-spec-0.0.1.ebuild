@@ -12,7 +12,6 @@ KEYWORDS="*"
 IUSE="+dual_boot"
 
 RDEPEND="
-    dual_boot? ( sys-boot/efibootmgr )
     dual_boot? ( chromeos-base/dual-boot-installer )
 "
 
