@@ -217,7 +217,7 @@ main() {
 
   # DEBUG_TTY may be not available, but we don't have better choices on headless
   # devices.
-  #enable_debug_console "${DEBUG_TTY}"
+  enable_debug_console "${DEBUG_TTY}"
 
   info "Bootstrapping dual boot overlay."
   
@@ -227,7 +227,8 @@ main() {
   check_ota_and_update $NEWROOT_MNT $loopdev_root
   # Kill all running terminals. Comment this line if you need to keep debug
   # console open for debugging.
-  killall frecon ||true
+  killall frecon || true
+  killall frecon-lite || true
   killall udevd || true
   killall less script || true
   NEWROOT_MNT=$loopdev_root 
