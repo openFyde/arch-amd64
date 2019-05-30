@@ -1,1 +1,1 @@
-chromeos-initramfs-0.0.1.ebuild
+chromeos-initramfs-0.0.1-r305.ebuild

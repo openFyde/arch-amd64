@@ -34,5 +34,5 @@ src_configure() {
 	tc-export CC
 	export EFIDIR="Gentoo"
 	# Help find efivar.h
-	export CPPFLAGS="-I/usr/include/efivar"
+	export CPPFLAGS="-I${ROOT}/usr/include/efivar"
 }

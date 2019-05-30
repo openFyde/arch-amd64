@@ -1,4 +1,8 @@
 EAPI=5
+EGIT_REPO_URI="git@gitlab.fydeos.xyz:misc/rEFInd-minimal.git"
+EGIT_BRANCH="master"
+
+inherit git-r3
 
 DESCRIPTION="Script to install dual bootable FydeOS along with existing OS."
 HOMEPAGE="https://fydeos.com"
@@ -19,9 +23,6 @@ DEPEND="
 	chromeos-base/chromeos-initramfs
 	chromeos-base/chromeos-installer
 "
-
-S=${WORKDIR}
-
 grub_args=(
     -p "/efi/fydeos"
     -c embedded.cfg
@@ -30,10 +31,10 @@ grub_args=(
   )
 
 src_compile() {
-    cat ${SYSROOT}/usr/sbin/chromeos-install | \
+  cat ${SYSROOT}/usr/sbin/chromeos-install | \
 	   sed -e "s/\/sbin\/blockdev\ --rereadpt/partx\ -a/g" > \
 	   chromeos-install.sh
-    echo 'configfile $cmdpath/grub.cfg' > embedded.cfg
+  echo 'configfile $cmdpath/grub.cfg' > embedded.cfg
 	grub-mkimage -O x86_64-efi -o bootx64.efi "${grub_args[@]}"    
 }
 
@@ -53,4 +54,12 @@ src_install() {
 
     insinto /usr/share/dualboot/initrd
     doins ${SYSROOT}/var/lib/initramfs/*.xz
+
+    insinto /usr/share/dualboot/refind/rEFInd-minimal
+    doins -r icons
+    doins *.png
+    doins theme.conf
+    doins LICENSE
+    insinto /usr/share/dualboot/kernel
+    doins ${ROOT}/boot/vmlinuz-*
 }

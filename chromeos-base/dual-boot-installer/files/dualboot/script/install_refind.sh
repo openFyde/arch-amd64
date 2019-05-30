@@ -46,6 +46,15 @@ copy_tools() {
     cp -f ${source}/* $target    
 }
 
+install_theme() {
+  local source_dir="${REFIND_DIR}/rEFInd-minimal"
+  local target_dir="${partmnt}${refind_install}"
+  local conf="${target_dir}/refind.conf"
+  mkdir -p ${target_dir}/themes
+  cp -rf $source_dir ${target_dir}/themes
+  echo "include themes/rEFInd-minimal/theme.conf" >> ${conf}
+}
+
 copy_refind() {
     local source="${1}/refind"
     local target="${partmnt}${refind_install}"
@@ -84,6 +93,7 @@ main() {
     info "install reFind..."
     local refind_source=${TMP_DIR}/${refind_dir}
     copy_refind $refind_source
+    install_theme
     AddBootEntry
     info "Done."
 }

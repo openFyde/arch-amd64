@@ -29,5 +29,6 @@ src_configure() {
 }
 
 src_compile() {
-	emake PKG_CONFIG="$(tc-getPKG_CONFIG)"
+	emake PKG_CONFIG="$(tc-getPKG_CONFIG)" CPPFLAGS="-I${ROOT}/usr/include/efivar -L${ROOT}/usr/include/efivar"  
+#  emake PKG_CONFIG="${ROOT}/usr/lib64/pkgconfig" # cflags="${cflags} -L${ROOT}/usr/lib64 -I${ROOT}/usr/include/efivar"
 }

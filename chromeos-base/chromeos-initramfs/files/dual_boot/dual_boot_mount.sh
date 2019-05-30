@@ -3,6 +3,7 @@ set -x
 
 FYDEOS_ROOT="/fydeos"
 BOOT="/boot"
+DUALBOOT_KERNEL_DIR="/usr/share/dualboot/kernel"
 FYDEOS_KERNEL="${BOOT}/vmlinuz"
 FYDEOS_KERNEL_A="fydeos_vmlinuzA"
 FYDEOS_KERNEL_B="fydeos_vmlinuzB"
@@ -68,17 +69,17 @@ get_release_version_from_kernel() {
 update_kernel() {
 	local origin_root=$1
 	local loop_root=$2
-	local source="${loop_root}${FYDEOS_KERNEL}"
-    local version="$(get_release_version_from_lsb ${loop_root})"
+	local source=$(ls ${loop_root}${DUALBOOT_KERNEL_DIR}/vmlinuz-*)
+  local version="$(get_release_version_from_lsb ${loop_root})"
 	local target="${origin_root}${FYDEOS_KERNEL}-${version}"
 	cp -f $source $target
 	cd ${origin_root}${BOOT}
 	local second_kernel="$(readlink ${FYDEOS_KERNEL_A})"
-    local old_kernel="$(readlink ${FYDEOS_KERNEL_B})"
+  local old_kernel="$(readlink ${FYDEOS_KERNEL_B})"
 	ln -s -f $second_kernel $FYDEOS_KERNEL_B
 	ln -s -f $(basename $target) $FYDEOS_KERNEL_A
-    if [ "${old_kernel}" != "${second_kernel}" ]; then
-        rm -f ${old_kernel}
-    fi
-    cd -
+  if [ "${old_kernel}" != "${second_kernel}" ]; then
+      rm -f ${old_kernel}
+  fi
+  cd -
 }
