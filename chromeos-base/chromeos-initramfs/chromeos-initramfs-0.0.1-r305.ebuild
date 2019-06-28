@@ -131,6 +131,7 @@ src_prepare() {
 	# Need the lddtree from the chromite dir.
 	export PATH="${CHROMITE_BIN_DIR}:${PATH}"
   cp -r ${FILESDIR}/* ${S}
+  epatch ${FILESDIR}/factory_shim.patch
 	eapply_user
 }
 

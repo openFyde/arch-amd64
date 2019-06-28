@@ -60,6 +60,4 @@ src_install() {
     doins *.png
     doins theme.conf
     doins LICENSE
-    insinto /usr/share/dualboot/kernel
-    doins ${ROOT}/boot/vmlinuz-*
 }

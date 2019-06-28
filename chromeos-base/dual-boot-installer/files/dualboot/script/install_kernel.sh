@@ -1,7 +1,6 @@
 #!/bin/bash
 DUAL_SCRIPT_DIR="/usr/share/dualboot"
 BOOT_DIR="/boot"
-KERNEL_DIR="${DUAL_SCRIPT_DIR}/kernel"
 KERNEL_A="fydeos_vmlinuzA"
 KERNEL_B="fydeos_vmlinuzB"
 SELF=$(basename $0)
@@ -29,14 +28,10 @@ print_usage() {
 main() {
 	  local target_dir=${partmnt}${BOOT_DIR}
     local target_kernel=vmlinuz-$(get_release_version)
-    local source_kernel=$(ls ${KERNEL_DIR}/vmlinuz-*)
-    if [ -z "${source_kernel}" ]; then
-      die "Can't find kenel at ${KERNEL_DIR}"
-    fi
 	  create_dir $target_dir
     pushd $target_dir > /dev/null 2>&1
     info "Install new kernel"
-    cp -f $source_kernel $target_kernel
+    cp -f /boot/vmlinuz $target_kernel
     ln -s -f $target_kernel $KERNEL_A
     if [ ! -L $KERNEL_B ];then
         ln -s -f $target_kernel $KERNEL_B
