@@ -1,3 +1,4 @@
 >=sys-apps/gptfdisk-1.0.1 -ncurses
 virtual/update-policy cros_embedded
 chromeos-base/chromeos-initramfs dual_boot_ramfs core_util_ramfs 
+>=sys-kernel/chromeos-kernel-4_14-9999 -apply_patches
