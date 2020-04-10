@@ -5,7 +5,8 @@ LOG_MOD=fydeos_dualboot
 LOG_FILE=/tmp/fydeos_dualboot.log
 DUALBOOT_DIR="/fydeos"
 DUALBOOT_IMG="${DUALBOOT_DIR}/fydeos_dual_boot.img"
-VERSION="2.0.0"
+VERSION="2.0.1"
+FYDEOS_FINGERPRINT=".fydeos_dualboot"
 # test if system in dualboot mode
 is_dualboot() {
     [ -n "$(grep fydeos_dualboot /proc/cmdline)" ]
@@ -94,11 +95,32 @@ create_dir() {
   fi
 }
 
+touch_dir() {
+  if [ -d $1 ]; then
+   touch $1/${FYDEOS_FINGERPRINT}  
+  fi
+}
+
+list_touched_dir() {
+  if [ -d $1 ]; then
+    for v_dir in `find $1 -name ${FYDEOS_FINGERPRINT}`; do
+      echo ${v_dir%/*}
+    done
+  fi   
+}
+
+remove_touched_dir() {
+  if [ -d $1 ]; then
+    for v_dir in `find $1 -name ${FYDEOS_FINGERPRINT}`; do
+      rm -rf ${v_dir%/*}
+    done
+  fi  
+}
+
 info_init() {
     if [ -n "$1" ]; then
       LOG_FILE=$1
     fi
-    LOG_FILE=$1
     LOG_MOD=${LOG_FILE##*/}
     LOG_MOD=${LOG_MOD%.*}
     echo "FydeOS dual boot install log:" > $LOG_FILE
@@ -271,7 +293,7 @@ remove_entry() {
 
 safe_format() {
 	local partdev=$1
-	log_init "/tmp/safe_format.log"
+	info_init "/tmp/safe_format.log"
     [ ! -b $partdev ] && die "device:${1} doesn't exist"
     local mntdir=$(lsblk -o mountpoint -l -n $partdev)
     if [ -n "${mntdir}" ];then
@@ -279,7 +301,7 @@ safe_format() {
         umount $partdev || die "the partition is used."
     fi
 	info "Format the partition:${partdev}"
-    mkfs.ext4 $partdev || die "mkfs error"
+    mkfs.ext4 -F $partdev || die "mkfs error"
 	info "Modify dualboot partition label..."
     set_dualboot_part $partdev
 }

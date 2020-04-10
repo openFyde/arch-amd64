@@ -59,6 +59,7 @@ copy_refind() {
     local source="${1}/refind"
     local target="${partmnt}${refind_install}"
     create_dir $target
+    touch_dir $target
     cp -f $source/refind_x64.efi $target
     cp -rf $source/icons $target
     cp -f $source/refind.conf-sample $target/refind.conf

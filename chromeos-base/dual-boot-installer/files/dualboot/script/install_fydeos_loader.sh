@@ -31,6 +31,7 @@ main() {
 	local target_dir=${partmnt}${EFI}
     info "Install FydeOS Boot Loader"
     create_dir $target_dir
+    touch_dir $target_dir
 	for file in $BOOT_FILES; do
 		cp -f ${BOOT_LOADER_DIR}/${file} $target_dir
     done 
