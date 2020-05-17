@@ -123,7 +123,6 @@ info_init() {
     fi
     LOG_MOD=${LOG_FILE##*/}
     LOG_MOD=${LOG_MOD%.*}
-    echo "FydeOS dual boot install log:" > $LOG_FILE
 }
 
 info() {
@@ -144,7 +143,6 @@ get_partition_free_space() {
 
 create_dualboot_image() {
     local part_dev=$1
-	info_init "/tmp/create_image.log" 
     local mnt_dir=$(get_mnt_of_part $part_dev)
     create_dir ${mnt_dir}${DUALBOOT_DIR}
     local img="${mnt_dir}${DUALBOOT_IMG}"
@@ -293,11 +291,10 @@ remove_entry() {
 
 safe_format() {
 	local partdev=$1
-	info_init "/tmp/safe_format.log"
     [ ! -b $partdev ] && die "device:${1} doesn't exist"
     local mntdir=$(lsblk -o mountpoint -l -n $partdev)
     if [ -n "${mntdir}" ];then
-		info "Unmount the partition"
+		info "Unmount the partition:${partdev}"
         umount $partdev || die "the partition is used."
     fi
 	info "Format the partition:${partdev}"
