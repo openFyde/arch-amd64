@@ -6,6 +6,23 @@ TPL="grub.cfg.tpl"
 TMP_DIR="/tmp"
 EFI="/EFI/fydeos"
 SELF=$(basename $0)
+FILTERS=(
+ "BOOT_IMAGE="
+ "init="
+ "root="
+ "boot="
+ "rootwait"
+ "noresume"
+ "noinitrd"
+ "noswap"
+ "ro"
+ "loglevel="
+ "console="
+ "i915.modeset=1"
+ "cros_efi"
+ "cros_debug"
+ "fydeos_dualboot"
+)
 
 set -e
 
@@ -27,17 +44,37 @@ print_usage() {
        "
 }
 
+get_cmdline() {
+  cat /proc/cmdline
+}
+
+get_extra_flags() {
+  local extra_flags
+  for flag in $(get_cmdline); do
+    for filter in ${FILTERS[@]}; do
+      if [ -n "$(echo $flag | grep $filter)" ]; then
+        continue 2
+      fi
+    done
+    extra_flags="$extra_flags $flag"
+  done
+  echo $extra_flags
+}
+
 main() {
 	local target_dir=${partmnt}${EFI}
-    info "Install FydeOS Boot Loader"
-    create_dir $target_dir
-    touch_dir $target_dir
+  local extra_flags=$(get_extra_flags)
+  info "Install FydeOS Boot Loader"
+  info "Extra command line flags: $extra_flags"
+  create_dir $target_dir
+  touch_dir $target_dir
 	for file in $BOOT_FILES; do
 		cp -f ${BOOT_LOADER_DIR}/${file} $target_dir
-    done 
-    cat ${BOOT_LOADER_DIR}/${TPL} | sed  "s#%ROOTDEV%#${dual_boot_dev}#g" \
+  done 
+  cat ${BOOT_LOADER_DIR}/${TPL} | sed  "s#%ROOTDEV%#${dual_boot_dev}#g" \
+    | sed "s#%EXTRA_FLAG%#${extra_flags}#g" \
 		> $target_dir/grub.cfg	
-    info "Done."
+  info "Done."
 }
 
 partmnt=
