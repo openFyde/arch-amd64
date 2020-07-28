@@ -6,18 +6,18 @@ set timeout=1
 
 menuentry "FydeOS dual-boot" {
   search --label --set root FYDEOS-DUAL-BOOT
-  linux /boot/fydeos_vmlinuzA init=/sbin/init root=%ROOTDEV% boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug  fydeos_dualboot
+  linux /boot/fydeos_vmlinuzA init=/sbin/init root=%ROOTDEV% boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug  fydeos_dualboot %EXTRA_FLAG%
   initrd /boot/dual_boot_ramfs.cpio.xz
 }
 
 menuentry "FydeOS dual-boot Backup" {
   search --label --set root FYDEOS-DUAL-BOOT
-  linux /boot/fydeos_vmlinuzB init=/sbin/init root=%ROOTDEV% boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug fydeos_dualboot
+  linux /boot/fydeos_vmlinuzB init=/sbin/init root=%ROOTDEV% boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug fydeos_dualboot %EXTRA_FLAG%
   initrd /boot/dual_boot_ramfs.cpio.xz
 }
 
 menuentry "FydeOS Recovery Tools" {
   search --label --set root FYDEOS-DUAL-BOOT
-  linux /boot/fydeos_vmlinuzB init=/sbin/init root=%ROOTDEV% boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug
+  linux /boot/fydeos_vmlinuzB init=/sbin/init root=%ROOTDEV% boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug %EXTRA_FLAG%
   initrd /boot/core_util_ramfs.cpio.xz
 }

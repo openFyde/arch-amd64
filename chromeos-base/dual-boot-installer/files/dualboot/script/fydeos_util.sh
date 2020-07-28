@@ -5,7 +5,7 @@ LOG_MOD=fydeos_dualboot
 LOG_FILE=/tmp/fydeos_dualboot.log
 DUALBOOT_DIR="/fydeos"
 DUALBOOT_IMG="${DUALBOOT_DIR}/fydeos_dual_boot.img"
-VERSION="2.0.1"
+VERSION="2.0.2"
 FYDEOS_FINGERPRINT=".fydeos_dualboot"
 # test if system in dualboot mode
 is_dualboot() {
