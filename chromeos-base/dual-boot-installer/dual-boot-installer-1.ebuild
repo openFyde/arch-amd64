@@ -4,7 +4,7 @@ EGIT_BRANCH="master"
 
 inherit git-r3
 
-DESCRIPTION="Script to install dual bootable FydeOS along with existing OS."
+DESCRIPTION="Script to configure FydeOS to boot alongside existing OS."
 HOMEPAGE="https://fydeos.com"
 
 SLOT="0"
