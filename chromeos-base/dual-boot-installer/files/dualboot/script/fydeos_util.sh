@@ -150,18 +150,18 @@ create_dualboot_image() {
     local freespace=$(get_partition_free_space $partdev)
     local imgspace=$(($freespace/100*100 - 1024*100))
     if [ $imgspace -lt $((1024*1024*9)) ];then
-        die "need more freespace to create image"
+        die "Need more free space to create FydeOS image, abort."
     fi
     if [ -f $img ];then
         rm -f $img      
     fi
-	info "Create dual boot image..."
+	info "Creating FydeOS multi-boot image..."
     fallocate -l $(($imgspace*1024)) $img
     info "Allocate :${img}"
 	local loopdev=$(load_img_to_dev $img)
-	info "Install image..."
+	info "Installing FydeOS image..."
 	${CHROME_INSTALL_CMD} --yes --dst ${loopdev}
-	info "Recycle system resources..."
+	info "Recycling system resources..."
 	partx -d ${loopdev}
 	losetup -d ${loopdev}
 	unmount ${mnt_dir}
@@ -172,7 +172,7 @@ create_dualboot_image() {
 load_img_to_dev() {
     local img=$1
     if [ ! -f $img ]; then
-        die "disk image does not exist."
+        die "Disk image does not exist, abort."
     fi
     local loopdev=$(losetup -f)
     losetup $loopdev $img
@@ -180,7 +180,7 @@ load_img_to_dev() {
 }
 
 umount_dev() {
-    [ ! -b $1 ] && die "device:${1} doesn't exist"
+    [ ! -b $1 ] && die "device:${1} does not exist, abort."
     partx -d $1
     losetup -d $1    
 }
@@ -203,7 +203,7 @@ get_efi_part() {
 
 get_mnt_of_part() {
     local partdev=$1
-    [ ! -b $partdev ] && die "device:${1} doesn't exist"
+    [ ! -b $partdev ] && die "device:${1} does not exist, abort."
     local mntdir=$(lsblk -o mountpoint -l -n $partdev)
     if [ -z "${mntdir}" ];then
         mntdir=$(mktemp -d -p /tmp ${LOG_MOD}_XXXXX)
@@ -291,14 +291,14 @@ remove_entry() {
 
 safe_format() {
 	local partdev=$1
-    [ ! -b $partdev ] && die "device:${1} doesn't exist"
+    [ ! -b $partdev ] && die "device:${1} does not exist, abort."
     local mntdir=$(lsblk -o mountpoint -l -n $partdev)
     if [ -n "${mntdir}" ];then
-		info "Unmount the partition:${partdev}"
-        umount $partdev || die "the partition is used."
+		info "Un-mounting the partition:${partdev}"
+        umount $partdev || die "The partition is being used, abort..."
     fi
-	info "Format the partition:${partdev}"
-    mkfs.ext4 -F $partdev || die "mkfs error"
-	info "Modify dualboot partition label..."
+	info "Formatting partition:${partdev}..."
+    mkfs.ext4 -F $partdev || die "mkfs error, abort."
+	info "Modifying multi-boot partition label..."
     set_dualboot_part $partdev
 }

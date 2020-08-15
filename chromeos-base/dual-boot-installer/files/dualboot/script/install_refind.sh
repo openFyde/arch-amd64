@@ -52,7 +52,7 @@ install_theme() {
   local conf="${target_dir}/refind.conf"
   mkdir -p ${target_dir}/themes
   cp -rf $source_dir ${target_dir}/themes
-  echo "include themes/rEFInd-minimal/theme.conf" >> ${conf}
+  echo "including themes/rEFInd-minimal/theme.conf" >> ${conf}
 }
 
 copy_refind() {
@@ -81,14 +81,14 @@ add_boot_entry() {
     fi
     if $install ; then
         local efi_dev=$(rootdev $partmnt)
-        info "Create new boot entry."
+        info "Creating new boot entry."
         create_entry $efi "rEFInd boot manager" $efi_dev
     fi
        
 }
 
 main() {
-    info "Extract rEFInd to /tmp/..."
+    info "Extracting rEFInd to /tmp/..."
     pushd ${TMP_DIR} > /dev/null 2>&1
     tar -xJf ${REFIND_DIR}/$refind_package
     info "Installing rEFInd..."
