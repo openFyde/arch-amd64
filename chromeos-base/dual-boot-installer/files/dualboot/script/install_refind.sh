@@ -52,7 +52,7 @@ install_theme() {
   local conf="${target_dir}/refind.conf"
   mkdir -p ${target_dir}/themes
   cp -rf $source_dir ${target_dir}/themes
-  echo "including themes/rEFInd-minimal/theme.conf" >> ${conf}
+  echo "include themes/rEFInd-minimal/theme.conf" >> ${conf}
 }
 
 copy_refind() {
