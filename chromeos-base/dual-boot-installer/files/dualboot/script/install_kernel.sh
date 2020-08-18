@@ -11,7 +11,7 @@ set -e
 
 print_version() {
     echo "$SELF version:${VERSION}, maintained by Fyde Innovations. All rights reserved."
-
+}
 
 print_usage() {
     print_version
