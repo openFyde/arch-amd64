@@ -26,8 +26,8 @@ DEPEND="
 grub_args=(
     -p "/efi/fydeos"
     -c embedded.cfg
-    part_gpt test fat ext2 hfs hfsplus normal boot chain
-    efi_gop configfile linux search echo search
+    part_gpt test fat ext2 hfs hfsplus normal boot chain loopback gptpriority
+    efi_gop configfile linux search echo cat
   )
 
 src_compile() {

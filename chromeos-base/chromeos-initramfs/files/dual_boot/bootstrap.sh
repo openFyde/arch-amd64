@@ -224,7 +224,7 @@ main() {
   #switch to new root directory which is offered by overlayfs
   local loopdev_root=$(mount_image ${NEWROOT_MNT})
 
-  check_ota_and_update $NEWROOT_MNT $loopdev_root
+  #check_ota_and_update $NEWROOT_MNT $loopdev_root
   # Kill all running terminals. Comment this line if you need to keep debug
   # console open for debugging.
   killall frecon || true
