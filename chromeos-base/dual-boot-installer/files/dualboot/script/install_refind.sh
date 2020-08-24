@@ -15,16 +15,16 @@ set -e
 . $DUAL_SCRIPT_DIR/fydeos_util.sh
 
 print_version() {
-    echo "$SELF version:${VERSION} Copyright By FydeOS"
+    echo "$SELF version:${VERSION} maintained by Fyde Innovations, all rights reserved."
 }
 
 print_usage() {
     print_version
     echo
-    echo "Insall rEFInd boot loader ${refind_version} for FydeOS dualboot2"
+    echo "Install rEFInd boot manager ${refind_version} for FydeOS multi-boot."
     echo "Usage: $SELF [-d | --dst <target dev or folder>] [-h | --help]
        Example: 
-           $SELF -d /dev/sda1    #partition device as target
+           $SELF -d /dev/sda1    #partition as target
            $SELF -d /mnt/sda1    #mount point as target
            $SELF                 #find the ESP partition as target
        "
@@ -33,7 +33,7 @@ print_usage() {
 copy_drivers() {
     local source="${1}/refind/drivers_x64"
     local target="${partmnt}${refind_install}/drivers_x64"
-    info "copy drivers..."
+    info "Copying drivers..."
     create_dir $target
     cp -f ${source}/* $target 
 }
@@ -42,7 +42,7 @@ copy_tools() {
     local source="${1}/refind/tools_x64"
     local target="${partmnt}${EFI}/tools"
     create_dir $target
-    info "copy tools..."
+    info "Copying tools..."
     cp -f ${source}/* $target    
 }
 
@@ -62,18 +62,18 @@ copy_refind() {
     touch_dir $target
     cp -f $source/refind_x64.efi $target
     cp -rf $source/icons $target
-    cp -f $source/refind.conf-sample $target/refind.conf
+    cp -f $source/refind.conf-fydeos $target/refind.conf
     cp -f $DUAL_SCRIPT_DIR/BOOT.CSV $target
     copy_tools $1
     copy_drivers $1
 }
 
-AddBootEntry() {
+add_boot_entry() {
     local efi="${EFI}/refind/refind_x64.efi"
     local install=true
     if is_efi_in_boot_entries $efi ; then
         if is_efi_first_boot_entry $efi ; then
-            info "The Boot Entry is already exist."
+            info "The boot entry has already existed."
             install=false
         else
             remove_entry $efi
@@ -81,27 +81,27 @@ AddBootEntry() {
     fi
     if $install ; then
         local efi_dev=$(rootdev $partmnt)
-        info "Create new boot entry."
-        create_entry $efi "rEFInd Boot Manager" $efi_dev
+        info "Creating new boot entry."
+        create_entry $efi "rEFInd boot manager" $efi_dev
     fi
        
 }
 
 main() {
-    info "Extract rEFInd to tmp..."
+    info "Extracting rEFInd to /tmp/..."
     pushd ${TMP_DIR} > /dev/null 2>&1
     tar -xJf ${REFIND_DIR}/$refind_package
-    info "install reFind..."
+    info "Installing rEFInd..."
     local refind_source=${TMP_DIR}/${refind_dir}
     copy_refind $refind_source
     install_theme
-    AddBootEntry
+    add_boot_entry
     info "Done."
 }
 
 partmnt=
 if [ -z "$refind_version" ]; then
-	die "No rEFInd package founded."
+	die "No rEFInd package found, abort."
 fi
 while [[ $# -gt 0 ]]; do
     opt=$1
@@ -137,10 +137,10 @@ if [ -z "$partmnt" ]; then
 			efi_arr[$index]=$efi
             index=$(($index+1))
         done
-        printf "Select the EFI partiton:"
+        printf "Select the EFI partition:"
 		read -n 1 selected
 		if [ -z "${efi_arr[$selected]}" ]; then
-            die "no efi founded."
+            die "No EFI found, abort."
         fi
 		efi_devs=${efi_arr[$selected]}
     fi

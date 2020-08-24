@@ -29,16 +29,16 @@ set -e
 . $DUAL_SCRIPT_DIR/fydeos_util.sh
 
 print_version() {
-    echo "$SELF version:${VERSION} Copyright By FydeOS"
+    echo "$SELF version:${VERSION}, maintained by Fyde Innovations. All rights reserved."
 }
 
 print_usage() {
     print_version
     echo
-    echo "Insall FydeOS boot loader for dualboot2"
+    echo "Installing FydeOS bootloader for multi-boot scheme."
     echo "Usage: $SELF [-d | --dst <target dev or folder>] [-h | --help]
        Example: 
-           $SELF -d /dev/sda1    #partition device as target
+           $SELF -d /dev/sda1    #partition as target
            $SELF -d /mnt/sda1    #mount point as target
            $SELF                 #find the ESP partition as target
        "
@@ -64,8 +64,8 @@ get_extra_flags() {
 main() {
 	local target_dir=${partmnt}${EFI}
   local extra_flags=$(get_extra_flags)
-  info "Install FydeOS Boot Loader"
-  info "Extra command line flags: $extra_flags"
+  info "Installing FydeOS bootloader..."
+  info "Extra commandline flags: $extra_flags"
   create_dir $target_dir
   touch_dir $target_dir
 	for file in $BOOT_FILES; do
@@ -80,7 +80,7 @@ main() {
 partmnt=
 dual_boot_dev=$(get_dualboot_part)
 if [ -z "$dual_boot_dev" ]; then
-	die "please Install FydeOS dualboot partition at first."
+	die "FydeOS multi-boot partition not found, abort."
 fi
 while [[ $# -gt 0 ]]; do
     opt=$1
@@ -116,10 +116,10 @@ if [ -z "$partmnt" ]; then
 			efi_arr[$index]=$efi
             index=$(($index+1))
         done
-        printf "Select the EFI partiton:"
+        printf "Selecting EFI partition:"
 		read -n 1 selected
 		if [ -z "${efi_arr[$selected]}" ]; then
-            die "no efi founded."
+            die "No ESP found, abort."
         fi
 		efi_devs=${efi_arr[$selected]}
     fi

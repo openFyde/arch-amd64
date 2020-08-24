@@ -10,13 +10,13 @@ set -e
 . $DUAL_SCRIPT_DIR/fydeos_util.sh
 
 print_version() {
-    echo "$SELF version:${VERSION} Copyright By FydeOS"
+    echo "$SELF version:${VERSION}, maintained by Fyde Innovations. All rights reserved."
 }
 
 print_usage() {
     print_version
     echo
-    echo "Insall or update kernel and initramfs of FydeOS for dualboot2"
+    echo "Installing or updating kernel and initramfs for FydeOS multi-boot configuration."
     echo "Usage: $SELF [-d | --dst <target dev or folder>] [-h | --help]
        Example: 
            $SELF -d /dev/sda5    #partition device as target
@@ -30,13 +30,13 @@ main() {
     local target_kernel=vmlinuz-$(get_release_version)
 	  create_dir $target_dir
     pushd $target_dir > /dev/null 2>&1
-    info "Install new kernel"
+    info "Installing new kernel..."
     cp -f /boot/vmlinuz $target_kernel
     ln -s -f $target_kernel $KERNEL_A
     if [ ! -L $KERNEL_B ];then
         ln -s -f $target_kernel $KERNEL_B
     fi
-    info "Install initramfs images"
+    info "Installing initramfs images..."
     cp -f $DUAL_SCRIPT_DIR/initrd/*.xz $target_dir
     popd > /dev/null 2>&1
     info "Done."
