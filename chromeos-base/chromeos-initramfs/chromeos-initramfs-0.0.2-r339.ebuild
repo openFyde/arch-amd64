@@ -1,1 +1,0 @@
-chromeos-initramfs-0.0.1-r338.ebuild
