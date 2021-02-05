@@ -2,6 +2,8 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="6"
+CROS_WORKON_COMMIT="3556d7625c9fed6cf5dd0f77f5aa119d6be288d4"
+CROS_WORKON_TREE="2246e62d1522bdc5bcd164b8fdc867e3271537f7"
 CROS_WORKON_PROJECT="chromiumos/platform/initramfs"
 CROS_WORKON_LOCALNAME="platform/initramfs"
 CROS_WORKON_OUTOFTREE_BUILD="1"
@@ -13,7 +15,7 @@ HOMEPAGE="https://chromium.googlesource.com/chromiumos/platform/initramfs/"
 
 LICENSE="BSD-Google"
 SLOT="0"
-KEYWORDS="~*"
+KEYWORDS="*"
 IUSE="+cros_ec_utils detachable device_tree +interactive_recovery"
 IUSE="${IUSE} legacy_firmware_ui -mtd +power_management"
 IUSE="${IUSE} physical_presence_power physical_presence_recovery"
@@ -26,6 +28,8 @@ TARGETS_IUSE="
 	hypervisor_ramfs
 	recovery_ramfs
 	minios_ramfs
+  dual_boot_ramfs
+  core_util_ramfs
 "
 IUSE+=" ${TARGETS_IUSE}"
 REQUIRED_USE="|| ( ${TARGETS_IUSE} )"
@@ -108,12 +112,45 @@ HYPERVISOR_DEPENDS="
 	virtual/linux-sources
 	"
 
+FYDEOS_DEPENDS="
+    app-arch/lbzip2
+    app-arch/pigz
+    app-arch/sharutils
+    app-misc/jq
+    app-shells/bash
+    chromeos-base/chromeos-base
+    chromeos-base/chromeos-installer
+    chromeos-base/chromeos-storage-info
+    chromeos-base/ec-utils
+    chromeos-base/factory_installer
+    chromeos-base/vboot_reference
+    chromeos-base/vpd
+    dev-libs/openssl
+    dev-util/shflags
+    dev-util/xxd
+    net-misc/curl
+    net-misc/htpdate
+    net-misc/wget
+    sys-apps/coreutils
+    sys-apps/flashrom
+    sys-apps/iproute2
+    sys-apps/mosys
+    sys-apps/util-linux
+    sys-block/parted
+    sys-fs/dosfstools
+    sys-fs/e2fsprogs
+    sys-libs/ncurses
+"
+
 DEPEND="
 	factory_netboot_ramfs? ( ${FACTORY_NETBOOT_DEPENDS} )
 	factory_shim_ramfs? ( ${FACTORY_SHIM_DEPENDS} )
 	recovery_ramfs? ( ${RECOVERY_DEPENDS} )
 	hypervisor_ramfs? ( ${HYPERVISOR_DEPENDS} )
 	minios_ramfs? ( ${MINIOS_DEPENDS} )
+  dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
+  core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
+ 	sys-apps/busybox[-make-symlinks]
 	sys-apps/busybox[-make-symlinks]
 	sys-fs/lvm2
 	virtual/chromeos-bsp-initramfs
@@ -131,6 +168,9 @@ src_prepare() {
 
 	# Need the lddtree from the chromite dir.
 	export PATH="${CHROMITE_BIN_DIR}:${PATH}"
+
+  cp -r ${FILESDIR}/* ${S}
+  epatch ${FILESDIR}/factory_shim.patch
 
 	eapply_user
 }
