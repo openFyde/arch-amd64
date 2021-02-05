@@ -45,6 +45,6 @@ src_install() {
 }
 
 src_prepare() {
-  epatch ${FILESDIR}/dual_boot_loopdev0_support.patch
+  eapply ${FILESDIR}/dual_boot_loopdev0_support.patch  
   default
 }
