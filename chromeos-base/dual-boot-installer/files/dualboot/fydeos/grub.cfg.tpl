@@ -16,12 +16,12 @@ set timeout=1
 
 # NOTE: find rootfs by label (not partion label)
 
-menuentry "FydeOS dual-boot A" {
+menuentry "FydeOS multi-boot A" {
   linux (loopdev,gpt12)/syslinux/vmlinuz.A init=/sbin/init root=%ROOTDEV% boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug  fydeos_dualboot %EXTRA_FLAG%
   initrd /boot/dual_boot_ramfs.cpio.xz
 }
 
-menuentry "FydeOS dual-boot B" {
+menuentry "FydeOS multi-boot B" {
   linux (loopdev,gpt12)/syslinux/vmlinuz.B init=/sbin/init root=%ROOTDEV% boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug  fydeos_dualboot %EXTRA_FLAG%
   initrd /boot/dual_boot_ramfs.cpio.xz
 }
