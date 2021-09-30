@@ -14,6 +14,7 @@ IUSE="+dual_boot"
 RDEPEND="
     dual_boot? ( chromeos-base/dual-boot-installer )
     chromeos-base/bring-all-cpus-online
+    chromeos-base/fydeos-hardware-tuner
 "
 
 DEPEND="${RDEPEND}"
