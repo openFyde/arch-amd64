@@ -1,0 +1,43 @@
+diff --git a/factory_shim/bootstrap.sh b/factory_shim/bootstrap.sh
+index dc69a57..5a1dd5a 100755
+--- a/factory_shim/bootstrap.sh
++++ b/factory_shim/bootstrap.sh
+@@ -75,19 +75,20 @@ on_error() {
+ 
+ # Look for a device with our GPT ID.
+ wait_for_gpt_root() {
+-  [ -z "$KERN_ARG_KERN_GUID" ] && return 1
+-  info -n "Looking for rootfs using kern_guid [${KERN_ARG_KERN_GUID}]... "
++  [ -z "$KERN_ARG_ROOT" ] && return 1
++  info -n "Looking for rootfs using root_guid [${KERN_ARG_ROOT}]... "
+   local try kern_dev kern_num
+-  local root_dev root_num
++  local root_dev root_num root_uuid
++  root_uuid=${KERN_ARG_ROOT#*=}
+   for try in $(seq 20); do
+     info -n ". "
+     # crbug.com/463414: when the cgpt supports MTD (cgpt.bin), redirecting its
+     # output will get duplicated data.
+-    kern_dev="$(cgpt find -1 -u $KERN_ARG_KERN_GUID 2>/dev/null | uniq)"
+-    kern_num=${kern_dev##[/a-z]*[/a-z]}
+-    # rootfs partition is always in kernel partition + 1.
+-    root_num=$(( kern_num + 1 ))
+-    root_dev="${kern_dev%${kern_num}}${root_num}"
++    root_dev="$(cgpt find -1 -u $root_uuid 2>/dev/null | uniq)"
++    root_num=${root_dev##[/a-z]*[/a-z]}
++    kern_num=$(( root_num-1 ))
++    kern_dev="${root_dev%${root_num}}"
++    export KERN_ARG_KERN_GUID=$(cgpt show -i ${kern_num} -u $kern_dev)
+     if [ -b "$root_dev" ]; then
+       USB_DEV="$root_dev"
+       info "Found ${USB_DEV}"
+@@ -331,7 +332,8 @@ use_new_root() {
+   #     exec switch_root "${NEWROOT_MNT}" /usr/sbin/factory_shim_service.sh
+ 
+   # -v prints upstart info in kmsg (available in INFO_TTY).
+-  exec switch_root "${NEWROOT_MNT}" /sbin/init -v --default-console output
++#  exec switch_root "${NEWROOT_MNT}" /sbin/init -v --default-console output
++  exec switch_root "${NEWROOT_MNT}" /usr/sbin/factory_shim_service.sh
+ }
+ 
+ main() {
