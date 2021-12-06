@@ -1,3 +1,6 @@
+# Copyright (c) 2021, Fyde Innovations Limited. All rights reserved.
+# Distributed under the license specified in the root directory of this project.
+
 EAPI=5
 EGIT_REPO_URI="https://gitee.com/openFyde/fydeos-refind-theme.git"
 EGIT_BRANCH="master"
