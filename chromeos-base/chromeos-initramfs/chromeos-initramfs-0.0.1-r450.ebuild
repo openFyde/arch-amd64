@@ -1,9 +1,9 @@
 # Copyright (c) 2012 The Chromium OS Authors. All rights reserved.
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="6"
-CROS_WORKON_COMMIT="a9013dc8b3339cfae7c61b8d9d1d5552f7b8bbef"
-CROS_WORKON_TREE="97ea022817aace3924e0cb0afee4975848947958"
+EAPI="7"
+CROS_WORKON_COMMIT="54d80dc7b826495799a234810c42b06fc7b4b53f"
+CROS_WORKON_TREE="7fc22de7283c00c55f1f56957d408b9b9c19c1e2"
 CROS_WORKON_PROJECT="chromiumos/platform/initramfs"
 CROS_WORKON_LOCALNAME="platform/initramfs"
 CROS_WORKON_OUTOFTREE_BUILD="1"
@@ -17,9 +17,9 @@ LICENSE="BSD-Google"
 SLOT="0"
 KEYWORDS="*"
 IUSE="+cros_ec_utils detachable device_tree +interactive_recovery"
-IUSE="${IUSE} menu_ui -mtd +power_management"
+IUSE="${IUSE} legacy_firmware_ui -mtd +power_management"
 IUSE="${IUSE} physical_presence_power physical_presence_recovery"
-IUSE="${IUSE} unibuild"
+IUSE="${IUSE} unibuild +oobe_config"
 
 # Build Targets
 TARGETS_IUSE="
@@ -27,6 +27,7 @@ TARGETS_IUSE="
 	factory_shim_ramfs
 	hypervisor_ramfs
 	recovery_ramfs
+	minios_ramfs
   dual_boot_ramfs
   core_util_ramfs
 "
@@ -36,6 +37,25 @@ REQUIRED_USE="|| ( ${TARGETS_IUSE} )"
 # Packages required for building recovery initramfs.
 RECOVERY_DEPENDS="
 	chromeos-base/chromeos-installer
+	chromeos-base/common-assets
+	chromeos-base/vboot_reference
+	chromeos-base/vpd
+	sys-apps/flashrom
+	sys-apps/pv
+	virtual/assets
+	virtual/chromeos-regions
+	"
+
+MINIOS_DEPENDS="
+	chromeos-base/minios
+	dev-util/strace
+	net-misc/curl
+	net-misc/dhcp
+	net-misc/dhcpcd
+	net-wireless/wpa_supplicant-cros
+	chromeos-base/minijail
+	chromeos-base/chromeos-installer
+	chromeos-base/factory_installer
 	chromeos-base/common-assets
 	chromeos-base/vboot_reference
 	chromeos-base/vpd
@@ -78,7 +98,6 @@ FACTORY_NETBOOT_DEPENDS="
 	sys-apps/iproute2
 	sys-apps/mosys
 	sys-apps/util-linux
-	sys-block/parted
 	sys-fs/dosfstools
 	sys-fs/e2fsprogs
 	sys-libs/ncurses
@@ -87,7 +106,8 @@ FACTORY_NETBOOT_DEPENDS="
 
 # Packages required for building hypervisor initramfs.
 HYPERVISOR_DEPENDS="
-	app-emulation/qemu
+	chromeos-base/crosvm
+	chromeos-base/sirenia
 	virtual/linux-sources
 	"
 
@@ -126,8 +146,10 @@ DEPEND="
 	factory_shim_ramfs? ( ${FACTORY_SHIM_DEPENDS} )
 	recovery_ramfs? ( ${RECOVERY_DEPENDS} )
 	hypervisor_ramfs? ( ${HYPERVISOR_DEPENDS} )
+	minios_ramfs? ( ${MINIOS_DEPENDS} )
   dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
   core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
+ 	sys-apps/busybox[-make-symlinks]
 	sys-apps/busybox[-make-symlinks]
 	sys-fs/lvm2
 	virtual/chromeos-bsp-initramfs
@@ -139,6 +161,9 @@ DEPEND="
 
 RDEPEND=""
 
+BDEPEND="
+	hypervisor_ramfs? ( chromeos-base/sirenia-tools )"
+
 src_prepare() {
 	export BUILD_LIBRARY_DIR="${CHROOT_SOURCE_ROOT}/src/scripts/build_library"
 	export INTERACTIVE_COMPLETE="$(usex interactive_recovery true false)"
@@ -147,7 +172,7 @@ src_prepare() {
 	export PATH="${CHROMITE_BIN_DIR}:${PATH}"
 
   cp -r ${FILESDIR}/* ${S}
-  epatch ${FILESDIR}/factory_shim.patch
+  eapply ${FILESDIR}/factory_shim.patch
 
 	eapply_user
 }
@@ -178,8 +203,9 @@ src_compile() {
 		INCLUDE_FIT_PICKER="$(usex device_tree 1 0)" \
 		INCLUDE_ECTOOL="$(usex cros_ec_utils 1 0)" \
 		DETACHABLE="$(usex detachable 1 0)" \
-		MENU_UI="$(usex menu_ui 1 0)" \
+		LEGACY_UI="$(usex legacy_firmware_ui 1 0)" \
 		UNIBUILD="$(usex unibuild 1 0)" \
+		OOBE_CONFIG="$(usex oobe_config 1 0)" \
 		PHYSICAL_PRESENCE="${physical_presence}" \
 		OUTPUT_DIR="${WORKDIR}" EXTRA_BIN_DEPS="${deps[*]}" \
 		LOCALE_LIST="${RECOVERY_LOCALES}" "${targets[@]}"

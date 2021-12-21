@@ -1,7 +1,7 @@
 # Copyright (c) 2012 The Chromium OS Authors. All rights reserved.
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="6"
+EAPI="7"
 CROS_WORKON_PROJECT="chromiumos/platform/initramfs"
 CROS_WORKON_LOCALNAME="platform/initramfs"
 CROS_WORKON_OUTOFTREE_BUILD="1"
@@ -48,7 +48,7 @@ MINIOS_DEPENDS="
 	net-misc/curl
 	net-misc/dhcp
 	net-misc/dhcpcd
-	net-wireless/wpa_supplicant-2_9
+	net-wireless/wpa_supplicant-cros
 	chromeos-base/minijail
 	chromeos-base/chromeos-installer
 	chromeos-base/factory_installer
@@ -94,7 +94,6 @@ FACTORY_NETBOOT_DEPENDS="
 	sys-apps/iproute2
 	sys-apps/mosys
 	sys-apps/util-linux
-	sys-block/parted
 	sys-fs/dosfstools
 	sys-fs/e2fsprogs
 	sys-libs/ncurses
@@ -124,6 +123,9 @@ DEPEND="
 	chromeos-base/chromeos-config-tools"
 
 RDEPEND=""
+
+BDEPEND="
+	hypervisor_ramfs? ( chromeos-base/sirenia-tools )"
 
 src_prepare() {
 	export BUILD_LIBRARY_DIR="${CHROOT_SOURCE_ROOT}/src/scripts/build_library"
