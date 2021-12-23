@@ -149,7 +149,6 @@ DEPEND="
 	minios_ramfs? ( ${MINIOS_DEPENDS} )
   dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
   core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
- 	sys-apps/busybox[-make-symlinks]
 	sys-apps/busybox[-make-symlinks]
 	sys-fs/lvm2
 	virtual/chromeos-bsp-initramfs
