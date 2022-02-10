@@ -4,7 +4,7 @@ DUAL_SCRIPT_DIR="/usr/share/dualboot"
 
 
 print_usage() {
-    die "$(basename $0) command [args...]" 
+    die "$(basename "$0") command [args...]"
 }
 
 if [ $# -lt 1 ]; then
@@ -12,4 +12,4 @@ if [ $# -lt 1 ]; then
 fi
 command=$1
 shift
-$command $@
+$command "$@" 2>&1 | tee -a "$LOG_FILE"

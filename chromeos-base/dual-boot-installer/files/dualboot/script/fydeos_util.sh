@@ -1,7 +1,7 @@
 #!/bin/bash
 DUALBOOT_LABEL="FYDEOS-DUAL-BOOT"
 CHROME_INSTALL_CMD="/usr/share/dualboot/chromeos-install.sh"
-LOG_MOD=fydeos_dualboot
+LOG_MOD=${LOG_MOD:-fydeos_dualboot}
 LOG_FILE=/tmp/fydeos_dualboot.log
 DUALBOOT_DIR="/fydeos"
 DUALBOOT_IMG="${DUALBOOT_DIR}/fydeos_dual_boot.img"
@@ -122,8 +122,6 @@ info_init() {
   if [ -n "$1" ]; then
     LOG_FILE=$1
   fi
-  LOG_MOD=${LOG_FILE##*/}
-  LOG_MOD=${LOG_MOD%.*}
 }
 
 clear_log() {
@@ -131,11 +129,11 @@ clear_log() {
 }
 
 info() {
-  echo "[$(date --rfc-3339=seconds)]:${LOG_MOD}:" $@ | tee -a $LOG_FILE
+  echo "[$(date --rfc-3339=seconds)]:${LOG_MOD}:" "$@"
 }
 
 die() {
-  info $@
+  info "$@"
   info "Error occured, the log file: $LOG_FILE"
   exit 1
 }
@@ -158,7 +156,7 @@ create_dualboot_image() {
     die "Need more free space to create FydeOS image, abort."
   fi
   if [ -f $img ];then
-    rm -f $img      
+    rm -f $img
   fi
   info "Creating FydeOS multi-boot image..."
   fallocate -l $(($imgspace*1024)) $img
@@ -169,7 +167,7 @@ create_dualboot_image() {
   info "Recycling system resources..."
   partx -d ${loopdev}
   losetup -d ${loopdev}
-  unmount ${mnt_dir}
+  umount ${mnt_dir}
   rmdir ${mnt_dir}
   info "Done."
 }
@@ -187,7 +185,7 @@ load_img_to_dev() {
 umount_dev() {
   [ ! -b $1 ] && die "device:${1} does not exist, abort."
   partx -d $1
-  losetup -d $1    
+  losetup -d $1
 }
 
 get_dualboot_part() {
@@ -198,7 +196,7 @@ set_dualboot_part() {
   local part_dev=$1
   if [ -z "$(get_dualboot_part)" ];then
     info "Running command: cgpt add -i $(parse_partition_num $part_dev) -l $DUALBOOT_LABEL $(parse_disk_dev $part_dev)"
-    cgpt add -i $(parse_partition_num $part_dev) -l $DUALBOOT_LABEL $(parse_disk_dev $part_dev)
+    cgpt add -i $(parse_partition_num $part_dev) -l $DUALBOOT_LABEL $(parse_disk_dev $part_dev) || info "set_dualboot_part, cgpt add boot entry error"
   fi
   sync_label $part_dev
 }
@@ -225,15 +223,15 @@ get_mnt_of_part() {
 
 get_release_version() {
   local ver=$(grep CHROMEOS_RELEASE_VERSION /etc/lsb-release)
-  echo ${ver#*=}    
+  echo ${ver#*=}
 }
 
 list_boot_entry() {
-  efibootmgr -v |grep "Boot0"    
+  efibootmgr -v |grep "Boot0"
 }
 
 get_first_boot_entry() {
-  efibootmgr |grep BootOrder: |cut -c 12-15    
+  efibootmgr |grep BootOrder: |cut -c 12-15
 }
 
 convert_efi_path() {
@@ -249,7 +247,7 @@ convert_efi_path2() {
 is_efi_in_boot_entries() {
   local efi_path=$(convert_efi_path $1)
   local efi_info=$(efibootmgr -v | grep -i "$efi_path")
-  [ -n "${efi_info}" ]    
+  [ -n "${efi_info}" ]
 }
 
 get_boot_entry_by_path() {
@@ -274,37 +272,46 @@ is_efi_first_boot_entry() {
 }
 
 create_entry() {
-  local efi_path=$(convert_efi_path2 $1)
+  local efi_path=""
+  efi_path=$(convert_efi_path2 "$1")
   local label=$2
   local part_dev=$3
-  efibootmgr -v -c -l ${efi_path} -L "${label}" -d "$(parse_disk_dev $part_dev)" \
-    -p "$(parse_partition_num $part_dev)" 2>&1
-  }
+  info "Create entry, running command efibootmgr, loader: ${efi_path}, label: ${label}, device: ${part_dev}"
+  efibootmgr -v -c -l "${efi_path}" -L "${label}" -d "$(parse_disk_dev "$part_dev")" \
+    -p "$(parse_partition_num "$part_dev")" || info "Create entry, efibootmgr error"
+  info "Create entry done."
+}
 
 safe_create_entry() {
   local efi=$1
   local label=$2
   local part_dev=$3
-  if ! is_efi_in_boot_entries $efi; then
-    create_entry $efi "${label}" $part_dev
+  if ! is_efi_in_boot_entries "$efi"; then
+    create_entry "$efi" "${label}" "$part_dev"
   fi
 }
 
 remove_entry() {
-  local efi_entry=$(get_boot_entry_by_path $1)
-  efibootmgr -v -b $efi_entry -B 2>&1
+  local efi_entry=""
+  efi_entry=$(get_boot_entry_by_path "$1")
+  info "Remove entry, $efi_entry, $1"
+  efibootmgr -v -b "$efi_entry" -B
+  info "Remove entry done."
 }
 
 safe_format() {
   local partdev=$1
-  [ ! -b $partdev ] && die "device:${1} does not exist, abort."
-  local mntdir=$(lsblk -o mountpoint -l -n $partdev)
+  info "Safe format ${partdev}"
+  [ ! -b "$partdev" ] && die "device:${1} does not exist, abort."
+  local mntdir=""
+  mntdir=$(lsblk -o mountpoint -l -n "$partdev")
   if [ -n "${mntdir}" ];then
     info "Un-mounting the partition:${partdev}"
-    umount $partdev || die "The partition is being used, abort..."
+    umount "$partdev" || die "The partition is being used, abort..."
   fi
   info "Formatting partition:${partdev}..."
-  mkfs.ext4 -F $partdev || die "mkfs error, abort."
+  mkfs.ext4 -F "$partdev" || die "Safe format, mkfs error, abort."
   info "Modifying multi-boot partition label..."
-  set_dualboot_part $partdev 2>&1
+  set_dualboot_part "$partdev"
+  info "Safe format ${partdev} done."
 }

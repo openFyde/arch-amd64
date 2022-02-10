@@ -9,6 +9,7 @@ TMP_DIR="/tmp"
 EFI="/EFI"
 refind_install="${EFI}/refind"
 SELF=$(basename $0)
+LOG_MOD="install_refind"
 
 set -e
 
@@ -87,7 +88,7 @@ add_boot_entry() {
 
 }
 
-main() {
+_main() {
   info "Extracting rEFInd to /tmp/..."
   pushd ${TMP_DIR} > /dev/null 2>&1
   tar -xJf ${REFIND_DIR}/$refind_package
@@ -99,9 +100,10 @@ main() {
   info "Done."
 }
 
+# global variables
 partmnt=
 
-prepare() {
+main() {
   if [ -z "$refind_version" ]; then
     die "No rEFInd package found, abort."
   fi
@@ -148,7 +150,8 @@ prepare() {
     fi
     partmnt=$(get_mnt_of_part $efi_devs)
   fi
+
+  _main
 }
 
-prepare "$@"
-main 
+main "$@"  2>&1 | tee -a "$LOG_FILE"

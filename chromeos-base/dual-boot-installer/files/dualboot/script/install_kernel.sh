@@ -4,6 +4,7 @@ BOOT_DIR="/boot"
 KERNEL_A="fydeos_vmlinuzA"
 KERNEL_B="fydeos_vmlinuzB"
 SELF=$(basename $0)
+LOG_MOD="install_kernel"
 
 set -e
 
@@ -25,7 +26,7 @@ print_usage() {
        "
 }
 
-main() {
+_main() {
 	  local target_dir=${partmnt}${BOOT_DIR}
     local target_kernel=vmlinuz-$(get_release_version)
 	  create_dir $target_dir
@@ -42,31 +43,38 @@ main() {
     info "Done."
 }
 
+# global variables
 partmnt=
-while [[ $# -gt 0 ]]; do
-    opt=$1
-    case $opt in
-        -d | --dst )
-            if [ -d $2 ]; then
-                partmnt=$2
-            elif [ -b $2 ]; then
-                partmnt=$(get_mnt_of_part  $2)
-            fi
-            shift
-            ;;
-        -h | --help )
-			print_usage
-			exit 0
-            ;;
-        * )
-            print_usage
-			exit 0
-            ;;
-    esac
 
-    shift
-done
-if [ -z "$partmnt" ]; then
-	partmnt=$(get_mnt_of_part $(get_dualboot_part))
-fi
-main 
+main() {
+  while [[ $# -gt 0 ]]; do
+      opt=$1
+      case $opt in
+          -d | --dst )
+              if [ -d $2 ]; then
+                  partmnt=$2
+              elif [ -b $2 ]; then
+                  partmnt=$(get_mnt_of_part  $2)
+              fi
+              shift
+              ;;
+          -h | --help )
+        print_usage
+        exit 0
+              ;;
+          * )
+              print_usage
+        exit 0
+              ;;
+      esac
+
+      shift
+  done
+  if [ -z "$partmnt" ]; then
+    partmnt=$(get_mnt_of_part $(get_dualboot_part))
+  fi
+
+  _main
+}
+
+main "$@"  2>&1 | tee -a "$LOG_FILE"

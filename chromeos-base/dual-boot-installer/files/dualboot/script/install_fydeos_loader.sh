@@ -2,6 +2,7 @@
 DUAL_SCRIPT_DIR="/usr/share/dualboot"
 BOOT_LOADER_DIR="/usr/share/dualboot/fydeos"
 BOOT_FILES="bootx64.efi os_fydeos.png"
+LOG_MOD="install_fydeos_loader"
 TPL="grub.cfg.tpl"
 TMP_DIR="/tmp"
 EFI="/EFI/fydeos"
@@ -61,7 +62,11 @@ get_extra_flags() {
   echo $extra_flags
 }
 
-main() {
+# global variables
+partmnt=""
+dual_boot_dev=$(get_dualboot_part)
+
+_main() {
 	local target_dir=${partmnt}${EFI}
   local extra_flags=$(get_extra_flags)
   info "Installing FydeOS bootloader..."
@@ -77,52 +82,55 @@ main() {
   info "Done."
 }
 
-partmnt=
-dual_boot_dev=$(get_dualboot_part)
-if [ -z "$dual_boot_dev" ]; then
-	die "FydeOS multi-boot partition not found, abort."
-fi
-while [[ $# -gt 0 ]]; do
-    opt=$1
-    case $opt in
-        -d | --dst )
-            if [ -d $2 ]; then
-                partmnt=$2
-            elif [ -b $2 ]; then
-                partmnt=$(get_mnt_of_part  $2)
-            fi
-            shift
-            ;;
-        -h | --help )
-			print_usage
-			exit 0
-            ;;
-        * )
-            print_usage
-			exit 0
-            ;;
-    esac
+main() {
+  if [ -z "$dual_boot_dev" ]; then
+    die "FydeOS multi-boot partition not found, abort."
+  fi
+  while [[ $# -gt 0 ]]; do
+      opt=$1
+      case $opt in
+          -d | --dst )
+              if [ -d $2 ]; then
+                  partmnt=$2
+              elif [ -b $2 ]; then
+                  partmnt=$(get_mnt_of_part  $2)
+              fi
+              shift
+              ;;
+          -h | --help )
+        print_usage
+        exit 0
+              ;;
+          * )
+              print_usage
+        exit 0
+              ;;
+      esac
 
-    shift
-done
-if [ -z "$partmnt" ]; then
-    efi_devs=$(get_efi_part)
-	if [ $(echo $efi_devs |wc -w) -gt 1 ]; then
-        index=1
-		selected=1
-		declare -a efi_arr
-        for efi in $efi_devs; do
-            echo "($index):${efi}"
-			efi_arr[$index]=$efi
-            index=$(($index+1))
-        done
-        printf "Selecting EFI partition:"
-		read -n 1 selected
-		if [ -z "${efi_arr[$selected]}" ]; then
-            die "No ESP found, abort."
-        fi
-		efi_devs=${efi_arr[$selected]}
-    fi
-	partmnt=$(get_mnt_of_part $efi_devs)
-fi
-main 
+      shift
+  done
+  if [ -z "$partmnt" ]; then
+      efi_devs=$(get_efi_part)
+    if [ $(echo $efi_devs |wc -w) -gt 1 ]; then
+          index=1
+      selected=1
+      declare -a efi_arr
+          for efi in $efi_devs; do
+              echo "($index):${efi}"
+        efi_arr[$index]=$efi
+              index=$(($index+1))
+          done
+          printf "Selecting EFI partition:"
+      read -n 1 selected
+      if [ -z "${efi_arr[$selected]}" ]; then
+              die "No ESP found, abort."
+          fi
+      efi_devs=${efi_arr[$selected]}
+      fi
+    partmnt=$(get_mnt_of_part $efi_devs)
+  fi
+
+  _main
+}
+
+main "$@" 2>&1 | tee -a "$LOG_FILE"

@@ -1,6 +1,7 @@
 #!/bin/bash
 DUAL_SCRIPT_DIR="/usr/share/dualboot"
 SELF=$(basename $0)
+LOG_MOD="uninstall_dualboot"
 
 . $DUAL_SCRIPT_DIR/fydeos_util.sh
 
@@ -61,9 +62,7 @@ kill_dualboot_chrome_install() {
   sleep 2
 }
 
-main() {
-  info_init /tmp/uninstall_dualboot.log
-  clear_log
+_main() {
   info "Removing FydeOS grub and rEFInd..."
   for efi_part in $(get_efi_part); do
     efi_dir=$(get_mnt_of_part $efi_part)
@@ -85,9 +84,15 @@ main() {
   info "Done"
 }
 
-if [ $# -gt 0 ]; then
-  print_usage
-  exit 0
-fi
+init() {
+  if [ $# -gt 0 ]; then
+    print_usage
+    exit 0
+  fi
+  info_init /tmp/uninstall_dualboot.log
+  clear_log
+}
 
-main
+init "$@"
+
+main 2>&1 | tee -a "$LOG_FILE"
