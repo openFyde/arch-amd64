@@ -1,6 +1,3 @@
-# Copyright (c) 2022 Fyde Innovations Limited and the openFyde Authors.
-# Distributed under the license specified in the root directory of this project.
-
 # Copyright (c) 2012 The Chromium OS Authors. All rights reserved.
 # Distributed under the terms of the GNU General Public License v2
 
@@ -20,7 +17,7 @@ KEYWORDS="~*"
 IUSE="+cros_ec_utils detachable device_tree +interactive_recovery"
 IUSE="${IUSE} legacy_firmware_ui -mtd +power_management"
 IUSE="${IUSE} physical_presence_power physical_presence_recovery"
-IUSE="${IUSE} unibuild +oobe_config"
+IUSE="${IUSE} unibuild +oobe_config no_factory_flow"
 
 # Build Targets
 TARGETS_IUSE="
@@ -56,6 +53,7 @@ MINIOS_DEPENDS="
 	chromeos-base/chromeos-installer
 	chromeos-base/factory_installer
 	chromeos-base/common-assets
+	chromeos-base/update-utils
 	chromeos-base/vboot_reference
 	chromeos-base/vpd
 	sys-apps/flashrom
@@ -107,12 +105,16 @@ FACTORY_NETBOOT_DEPENDS="
 HYPERVISOR_DEPENDS="
 	chromeos-base/crosvm
 	chromeos-base/sirenia
+	sys-apps/coreboot-utils
 	virtual/linux-sources
+	virtual/manatee-apps
 	"
 
 DEPEND="
-	factory_netboot_ramfs? ( ${FACTORY_NETBOOT_DEPENDS} )
-	factory_shim_ramfs? ( ${FACTORY_SHIM_DEPENDS} )
+	!no_factory_flow? (
+		factory_netboot_ramfs? ( ${FACTORY_NETBOOT_DEPENDS} )
+		factory_shim_ramfs? ( ${FACTORY_SHIM_DEPENDS} )
+	)
 	recovery_ramfs? ( ${RECOVERY_DEPENDS} )
 	hypervisor_ramfs? ( ${HYPERVISOR_DEPENDS} )
 	minios_ramfs? ( ${MINIOS_DEPENDS} )
@@ -144,7 +146,9 @@ src_compile() {
 	local deps=()
 	use mtd && deps+=(/usr/bin/cgpt)
 	if use factory_netboot_ramfs; then
-		use power_management && deps+=(/usr/bin/backlight_tool)
+		if ! use no_factory_flow; then
+			use power_management && deps+=(/usr/bin/backlight_tool)
+		fi
 	fi
 
 	local targets=()

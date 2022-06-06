@@ -5,8 +5,8 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="7"
-CROS_WORKON_COMMIT="54d80dc7b826495799a234810c42b06fc7b4b53f"
-CROS_WORKON_TREE="7fc22de7283c00c55f1f56957d408b9b9c19c1e2"
+CROS_WORKON_COMMIT="453f08529f407499c2f6614eff042c2d53dcb4b1"
+CROS_WORKON_TREE="ca7355f68f1cf8ebb9ee3fe4fe723fdea6f6dbd5"
 CROS_WORKON_PROJECT="chromiumos/platform/initramfs"
 CROS_WORKON_LOCALNAME="platform/initramfs"
 CROS_WORKON_OUTOFTREE_BUILD="1"
@@ -22,7 +22,7 @@ KEYWORDS="*"
 IUSE="+cros_ec_utils detachable device_tree +interactive_recovery"
 IUSE="${IUSE} legacy_firmware_ui -mtd +power_management"
 IUSE="${IUSE} physical_presence_power physical_presence_recovery"
-IUSE="${IUSE} unibuild +oobe_config"
+IUSE="${IUSE} unibuild +oobe_config no_factory_flow"
 
 # Build Targets
 TARGETS_IUSE="
@@ -31,8 +31,8 @@ TARGETS_IUSE="
 	hypervisor_ramfs
 	recovery_ramfs
 	minios_ramfs
-  dual_boot_ramfs
-  core_util_ramfs
+	dual_boot_ramfs
+	core_util_ramfs
 "
 IUSE+=" ${TARGETS_IUSE}"
 REQUIRED_USE="|| ( ${TARGETS_IUSE} )"
@@ -60,6 +60,7 @@ MINIOS_DEPENDS="
 	chromeos-base/chromeos-installer
 	chromeos-base/factory_installer
 	chromeos-base/common-assets
+	chromeos-base/update-utils
 	chromeos-base/vboot_reference
 	chromeos-base/vpd
 	sys-apps/flashrom
@@ -111,47 +112,55 @@ FACTORY_NETBOOT_DEPENDS="
 HYPERVISOR_DEPENDS="
 	chromeos-base/crosvm
 	chromeos-base/sirenia
+	sys-apps/coreboot-utils
 	virtual/linux-sources
+	virtual/manatee-apps
 	"
 
 FYDEOS_DEPENDS="
-    app-arch/lbzip2
-    app-arch/pigz
-    app-arch/sharutils
-    app-misc/jq
-    app-shells/bash
-    chromeos-base/chromeos-base
-    chromeos-base/chromeos-installer
-    chromeos-base/chromeos-storage-info
-    chromeos-base/ec-utils
-    chromeos-base/factory_installer
-    chromeos-base/vboot_reference
-    chromeos-base/vpd
-    dev-libs/openssl
-    dev-util/shflags
-    dev-util/xxd
-    net-misc/curl
-    net-misc/htpdate
-    net-misc/wget
-    sys-apps/coreutils
-    sys-apps/flashrom
-    sys-apps/iproute2
-    sys-apps/mosys
-    sys-apps/util-linux
-    sys-block/parted
-    sys-fs/dosfstools
-    sys-fs/e2fsprogs
-    sys-libs/ncurses
-"
+	app-arch/lbzip2
+	app-arch/pigz
+	app-arch/sharutils
+	app-misc/jq
+	app-shells/bash
+	chromeos-base/chromeos-base
+	chromeos-base/chromeos-installer
+	chromeos-base/chromeos-storage-info
+	chromeos-base/ec-utils
+	chromeos-base/factory_installer
+	chromeos-base/vboot_reference
+	chromeos-base/vpd
+	dev-libs/openssl
+	dev-util/shflags
+	dev-util/xxd
+	net-misc/curl
+	net-misc/htpdate
+	net-misc/wget
+	sys-apps/coreutils
+	sys-apps/flashrom
+	sys-apps/iproute2
+	sys-apps/mosys
+	sys-apps/util-linux
+	sys-block/parted
+	sys-fs/dosfstools
+	sys-fs/e2fsprogs
+	sys-libs/ncurses
+	sys-libs/efivar
+	sys-boot/efibootmgr
+	sys-apps/pv
+	app-shells/dash
+	"
 
 DEPEND="
-	factory_netboot_ramfs? ( ${FACTORY_NETBOOT_DEPENDS} )
-	factory_shim_ramfs? ( ${FACTORY_SHIM_DEPENDS} )
+	!no_factory_flow? (
+		factory_netboot_ramfs? ( ${FACTORY_NETBOOT_DEPENDS} )
+		factory_shim_ramfs? ( ${FACTORY_SHIM_DEPENDS} )
+	)
 	recovery_ramfs? ( ${RECOVERY_DEPENDS} )
 	hypervisor_ramfs? ( ${HYPERVISOR_DEPENDS} )
 	minios_ramfs? ( ${MINIOS_DEPENDS} )
-  dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
-  core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
+	dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
+	core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
 	sys-apps/busybox[-make-symlinks]
 	sys-fs/lvm2
 	virtual/chromeos-bsp-initramfs
@@ -173,8 +182,8 @@ src_prepare() {
 	# Need the lddtree from the chromite dir.
 	export PATH="${CHROMITE_BIN_DIR}:${PATH}"
 
-  cp -r ${FILESDIR}/* ${S}
-  eapply ${FILESDIR}/factory_shim.patch
+	cp -r ${FILESDIR}/* ${S}
+	eapply ${FILESDIR}/factory_shim.patch
 
 	eapply_user
 }
@@ -183,7 +192,9 @@ src_compile() {
 	local deps=()
 	use mtd && deps+=(/usr/bin/cgpt)
 	if use factory_netboot_ramfs; then
-		use power_management && deps+=(/usr/bin/backlight_tool)
+		if ! use no_factory_flow; then
+			use power_management && deps+=(/usr/bin/backlight_tool)
+		fi
 	fi
 
 	local targets=()
