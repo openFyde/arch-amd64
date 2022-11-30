@@ -56,7 +56,7 @@ src_install() {
     doexe chromeos-install.sh
 
     insinto /usr/share/dualboot/initrd
-    doins ${SYSROOT}/var/lib/initramfs/*.xz
+    doins ${SYSROOT}/var/lib/initramfs/*.cpio
 
     insinto /usr/share/dualboot/refind/rEFInd-minimal
     doins -r icons

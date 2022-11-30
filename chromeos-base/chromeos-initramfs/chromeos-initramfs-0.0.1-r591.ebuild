@@ -1,12 +1,12 @@
 # Copyright (c) 2022 Fyde Innovations Limited and the openFyde Authors.
 # Distributed under the license specified in the root directory of this project.
 
-# Copyright (c) 2012 The Chromium OS Authors. All rights reserved.
+# Copyright 2012 The ChromiumOS Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="7"
-CROS_WORKON_COMMIT="453f08529f407499c2f6614eff042c2d53dcb4b1"
-CROS_WORKON_TREE="ca7355f68f1cf8ebb9ee3fe4fe723fdea6f6dbd5"
+CROS_WORKON_COMMIT="c2c176a2eb2a16d1a7deaf12cf1425f417081f84"
+CROS_WORKON_TREE="2e230a3a11d409a12e35e89bed31a4c668b173ba"
 CROS_WORKON_PROJECT="chromiumos/platform/initramfs"
 CROS_WORKON_LOCALNAME="platform/initramfs"
 CROS_WORKON_OUTOFTREE_BUILD="1"
@@ -21,8 +21,8 @@ SLOT="0"
 KEYWORDS="*"
 IUSE="+cros_ec_utils detachable device_tree +interactive_recovery"
 IUSE="${IUSE} legacy_firmware_ui -mtd +power_management"
-IUSE="${IUSE} physical_presence_power physical_presence_recovery"
 IUSE="${IUSE} unibuild +oobe_config no_factory_flow"
+IUSE="${IUSE} manatee_performance_tools nvme ufs"
 
 # Build Targets
 TARGETS_IUSE="
@@ -34,8 +34,9 @@ TARGETS_IUSE="
 	dual_boot_ramfs
 	core_util_ramfs
 "
-IUSE+=" ${TARGETS_IUSE}"
-REQUIRED_USE="|| ( ${TARGETS_IUSE} )"
+IUSE="${IUSE} test ${TARGETS_IUSE}"
+# Allow absence of the build target when running tests via cros_run_unit_tests.
+REQUIRED_USE="|| ( test ${TARGETS_IUSE} )"
 
 # Packages required for building recovery initramfs.
 RECOVERY_DEPENDS="
@@ -50,19 +51,20 @@ RECOVERY_DEPENDS="
 	"
 
 MINIOS_DEPENDS="
+	chromeos-base/chromeos-installer
+	chromeos-base/common-assets
+	chromeos-base/factory_installer
+	chromeos-base/minijail
 	chromeos-base/minios
+	chromeos-base/update-utils
+	chromeos-base/vboot_reference
+	chromeos-base/vpd
 	dev-util/strace
 	net-misc/curl
 	net-misc/dhcp
 	net-misc/dhcpcd
 	net-wireless/wpa_supplicant-cros
-	chromeos-base/minijail
-	chromeos-base/chromeos-installer
-	chromeos-base/factory_installer
-	chromeos-base/common-assets
-	chromeos-base/update-utils
-	chromeos-base/vboot_reference
-	chromeos-base/vpd
+	nvme? ( sys-apps/nvme-cli )
 	sys-apps/flashrom
 	sys-apps/pv
 	virtual/assets
@@ -88,6 +90,7 @@ FACTORY_NETBOOT_DEPENDS="
 	chromeos-base/chromeos-storage-info
 	chromeos-base/ec-utils
 	chromeos-base/factory_installer
+	ufs? ( chromeos-base/factory_ufs )
 	chromeos-base/vboot_reference
 	chromeos-base/vpd
 	dev-libs/openssl:0=
@@ -115,6 +118,15 @@ HYPERVISOR_DEPENDS="
 	sys-apps/coreboot-utils
 	virtual/linux-sources
 	virtual/manatee-apps
+	manatee_performance_tools? (
+		app-admin/sysstat
+		dev-util/strace
+		dev-util/turbostat
+		dev-util/perf
+		dev-util/trace-cmd
+		sys-process/htop
+		chromeos-base/perfetto
+	)
 	"
 
 FYDEOS_DEPENDS="
@@ -168,7 +180,8 @@ DEPEND="
 	sys-apps/frecon-lite
 	power_management? ( chromeos-base/power_manager )
 	unibuild? ( chromeos-base/chromeos-config )
-	chromeos-base/chromeos-config-tools"
+	chromeos-base/chromeos-config-tools
+	test? ( dev-util/shunit2 )"
 
 RDEPEND=""
 
@@ -201,33 +214,43 @@ src_compile() {
 	for target in ${TARGETS_IUSE}; do
 		use "${target}" && targets+=("${target%_ramfs}")
 	done
-	einfo "Building targets: ${targets[*]}"
+	einfo "Building targets: ${targets[*]:-(only running tests)}"
 
-	local physical_presence
-	if use physical_presence_power ; then
-		physical_presence="power"
-	elif use physical_presence_recovery ; then
-		physical_presence="recovery"
-	else
-		physical_presence="keyboard"
+	if [[ ${#targets[@]} -gt 0 ]]; then
+		emake SYSROOT="${SYSROOT}" \
+			BOARD="$(get_current_board_with_variant)" \
+			DETACHABLE="$(usex detachable 1 0)" \
+			INCLUDE_ECTOOL="$(usex cros_ec_utils 1 0)" \
+			INCLUDE_FACTORY_UFS="$(usex ufs 1 0)" \
+			INCLUDE_FIT_PICKER="$(usex device_tree 1 0)" \
+			INCLUDE_NVME_CLI="$(usex nvme 1 0)" \
+			LEGACY_UI="$(usex legacy_firmware_ui 1 0)" \
+			LIBDIR="$(get_libdir)" \
+			LOCALE_LIST="${RECOVERY_LOCALES:-}" \
+			MANATEE_PERFORMANCE_TOOLS="$(usex manatee_performance_tools 1 0)" \
+			OOBE_CONFIG="$(usex oobe_config 1 0)" \
+			OUTPUT_DIR="${WORKDIR}" EXTRA_BIN_DEPS="${deps[*]}" \
+			UNIBUILD="$(usex unibuild 1 0)" \
+			"${targets[@]}"
 	fi
+}
 
-	emake SYSROOT="${SYSROOT}" BOARD="$(get_current_board_with_variant)" \
-		INCLUDE_FIT_PICKER="$(usex device_tree 1 0)" \
-		INCLUDE_ECTOOL="$(usex cros_ec_utils 1 0)" \
-		DETACHABLE="$(usex detachable 1 0)" \
-		LEGACY_UI="$(usex legacy_firmware_ui 1 0)" \
-		UNIBUILD="$(usex unibuild 1 0)" \
-		OOBE_CONFIG="$(usex oobe_config 1 0)" \
-		PHYSICAL_PRESENCE="${physical_presence}" \
-		OUTPUT_DIR="${WORKDIR}" EXTRA_BIN_DEPS="${deps[*]}" \
-		LOCALE_LIST="${RECOVERY_LOCALES}" "${targets[@]}"
+src_test() {
+	local targets=()
+	for target in ${TARGETS_IUSE}; do
+		use "${target}" && targets+=("${target%_ramfs}_check")
+	done
+	einfo "Testing targets: ${targets[*]}"
+
+	if [[ ${#targets[@]} -gt 0 ]]; then
+		emake SYSROOT="${SYSROOT}" "${targets[@]}"
+	fi
 }
 
 src_install() {
 	insinto /var/lib/initramfs
 	for target in ${TARGETS_IUSE}; do
 		use "${target}" &&
-			doins "${WORKDIR}/${target}.cpio.xz"
+			doins "${WORKDIR}/${target}.cpio"
 	done
 }
