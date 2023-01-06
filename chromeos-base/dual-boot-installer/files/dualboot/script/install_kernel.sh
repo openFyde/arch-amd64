@@ -38,7 +38,7 @@ _main() {
         ln -s -f $target_kernel $KERNEL_B
     fi
     info "Installing initramfs images..."
-    cp -f $DUAL_SCRIPT_DIR/initrd/*.xz $target_dir
+    cp -f $DUAL_SCRIPT_DIR/initrd/*.cpio $target_dir
     popd > /dev/null 2>&1
     info "Done."
 }

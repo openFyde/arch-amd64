@@ -18,15 +18,15 @@ set timeout=1
 
 menuentry "FydeOS multi-boot A" {
   linux (loopdev,gpt12)/syslinux/vmlinuz.A init=/sbin/init root=%ROOTDEV% boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug  fydeos_dualboot %EXTRA_FLAG%
-  initrd /boot/dual_boot_ramfs.cpio.xz
+  initrd /boot/dual_boot_ramfs.cpio
 }
 
 menuentry "FydeOS multi-boot B" {
   linux (loopdev,gpt12)/syslinux/vmlinuz.B init=/sbin/init root=%ROOTDEV% boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug  fydeos_dualboot %EXTRA_FLAG%
-  initrd /boot/dual_boot_ramfs.cpio.xz
+  initrd /boot/dual_boot_ramfs.cpio
 }
 
 menuentry "FydeOS Recovery Tools" {
   linux /boot/fydeos_vmlinuzB init=/sbin/init root=%ROOTDEV% boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug %EXTRA_FLAG%
-  initrd /boot/core_util_ramfs.cpio.xz
+  initrd /boot/core_util_ramfs.cpio
 }
