@@ -15,6 +15,7 @@ RDEPEND="
     dual_boot? ( chromeos-base/dual-boot-installer )
     chromeos-base/bring-all-cpus-online
     chromeos-base/fydeos-hardware-tuner
+    app-arch/zstd
 "
 
 DEPEND="${RDEPEND}"
