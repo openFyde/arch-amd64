@@ -18,6 +18,7 @@ IUSE="+cros_ec_utils detachable device_tree +interactive_recovery"
 IUSE="${IUSE} legacy_firmware_ui -mtd +power_management"
 IUSE="${IUSE} unibuild +oobe_config no_factory_flow"
 IUSE="${IUSE} manatee_performance_tools nvme ufs"
+IUSE="${IUSE} cr50_onboard ti50_onboard tpm"
 
 # Build Targets
 TARGETS_IUSE="
@@ -96,7 +97,6 @@ FACTORY_NETBOOT_DEPENDS="
 	sys-apps/coreutils
 	sys-apps/flashrom
 	sys-apps/iproute2
-	sys-apps/mosys
 	sys-apps/util-linux
 	sys-fs/dosfstools
 	sys-fs/e2fsprogs
@@ -117,7 +117,6 @@ HYPERVISOR_DEPENDS="
 		dev-util/turbostat
 		dev-util/perf
 		dev-util/trace-cmd
-		sys-process/htop
 		chromeos-base/perfetto
 	)
 	"
@@ -171,11 +170,18 @@ src_compile() {
 	einfo "Building targets: ${targets[*]:-(only running tests)}"
 
 	if [[ ${#targets[@]} -gt 0 ]]; then
+		local tpm_type="default"
+		if use cr50_onboard || use ti50_onboard; then
+			tpm_type="cros"
+		elif use tpm; then
+			tpm_type="infineon"
+		fi
 		emake SYSROOT="${SYSROOT}" \
 			BOARD="$(get_current_board_with_variant)" \
 			DETACHABLE="$(usex detachable 1 0)" \
 			INCLUDE_ECTOOL="$(usex cros_ec_utils 1 0)" \
 			INCLUDE_FACTORY_UFS="$(usex ufs 1 0)" \
+			FACTORY_TPM_SCRIPT="${tpm_type}" \
 			INCLUDE_FIT_PICKER="$(usex device_tree 1 0)" \
 			INCLUDE_NVME_CLI="$(usex nvme 1 0)" \
 			LEGACY_UI="$(usex legacy_firmware_ui 1 0)" \

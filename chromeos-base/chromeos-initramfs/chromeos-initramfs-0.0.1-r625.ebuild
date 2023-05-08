@@ -1,12 +1,9 @@
-# Copyright (c) 2022 Fyde Innovations Limited and the openFyde Authors.
-# Distributed under the license specified in the root directory of this project.
-
 # Copyright 2012 The ChromiumOS Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="7"
-CROS_WORKON_COMMIT="c2c176a2eb2a16d1a7deaf12cf1425f417081f84"
-CROS_WORKON_TREE="2e230a3a11d409a12e35e89bed31a4c668b173ba"
+CROS_WORKON_COMMIT="54229c6cd70051e96c4a225023d74fc91304fca1"
+CROS_WORKON_TREE="9edd3b4b848a11f825123435b0c095e9361f908c"
 CROS_WORKON_PROJECT="chromiumos/platform/initramfs"
 CROS_WORKON_LOCALNAME="platform/initramfs"
 CROS_WORKON_OUTOFTREE_BUILD="1"
@@ -23,6 +20,7 @@ IUSE="+cros_ec_utils detachable device_tree +interactive_recovery"
 IUSE="${IUSE} legacy_firmware_ui -mtd +power_management"
 IUSE="${IUSE} unibuild +oobe_config no_factory_flow"
 IUSE="${IUSE} manatee_performance_tools nvme ufs"
+IUSE="${IUSE} cr50_onboard ti50_onboard tpm"
 
 # Build Targets
 TARGETS_IUSE="
@@ -31,8 +29,8 @@ TARGETS_IUSE="
 	hypervisor_ramfs
 	recovery_ramfs
 	minios_ramfs
-	dual_boot_ramfs
-	core_util_ramfs
+  dual_boot_ramfs
+  core_util_ramfs
 "
 IUSE="${IUSE} test ${TARGETS_IUSE}"
 # Allow absence of the build target when running tests via cros_run_unit_tests.
@@ -103,7 +101,6 @@ FACTORY_NETBOOT_DEPENDS="
 	sys-apps/coreutils
 	sys-apps/flashrom
 	sys-apps/iproute2
-	sys-apps/mosys
 	sys-apps/util-linux
 	sys-fs/dosfstools
 	sys-fs/e2fsprogs
@@ -124,44 +121,42 @@ HYPERVISOR_DEPENDS="
 		dev-util/turbostat
 		dev-util/perf
 		dev-util/trace-cmd
-		sys-process/htop
 		chromeos-base/perfetto
 	)
 	"
-
 FYDEOS_DEPENDS="
-	app-arch/lbzip2
-	app-arch/pigz
-	app-arch/sharutils
-	app-misc/jq
-	app-shells/bash
-	chromeos-base/chromeos-base
-	chromeos-base/chromeos-installer
-	chromeos-base/chromeos-storage-info
-	chromeos-base/ec-utils
-	chromeos-base/factory_installer
-	chromeos-base/vboot_reference
-	chromeos-base/vpd
-	dev-libs/openssl
-	dev-util/shflags
-	dev-util/xxd
-	net-misc/curl
-	net-misc/htpdate
-	net-misc/wget
-	sys-apps/coreutils
-	sys-apps/flashrom
-	sys-apps/iproute2
-	sys-apps/mosys
-	sys-apps/util-linux
-	sys-block/parted
-	sys-fs/dosfstools
-	sys-fs/e2fsprogs
-	sys-libs/ncurses
-	sys-libs/efivar
-	sys-boot/efibootmgr
-	sys-apps/pv
-	app-shells/dash
-	"
+       app-arch/lbzip2
+       app-arch/pigz
+       app-arch/sharutils
+       app-misc/jq
+       app-shells/bash
+       chromeos-base/chromeos-base
+       chromeos-base/chromeos-installer
+       chromeos-base/chromeos-storage-info
+       chromeos-base/ec-utils
+       chromeos-base/factory_installer
+       chromeos-base/vboot_reference
+       chromeos-base/vpd
+       dev-libs/openssl
+       dev-util/shflags
+       dev-util/xxd
+       net-misc/curl
+       net-misc/htpdate
+       net-misc/wget
+       sys-apps/coreutils
+       sys-apps/flashrom
+       sys-apps/iproute2
+       sys-apps/mosys
+       sys-apps/util-linux
+       sys-block/parted
+       sys-fs/dosfstools
+       sys-fs/e2fsprogs
+       sys-libs/ncurses
+       sys-libs/efivar
+       sys-boot/efibootmgr
+       sys-apps/pv
+       app-shells/dash
+       "
 
 DEPEND="
 	!no_factory_flow? (
@@ -171,8 +166,8 @@ DEPEND="
 	recovery_ramfs? ( ${RECOVERY_DEPENDS} )
 	hypervisor_ramfs? ( ${HYPERVISOR_DEPENDS} )
 	minios_ramfs? ( ${MINIOS_DEPENDS} )
-	dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
-	core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
+  dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
+  core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
 	sys-apps/busybox[-make-symlinks]
 	sys-fs/lvm2
 	virtual/chromeos-bsp-initramfs
@@ -194,10 +189,8 @@ src_prepare() {
 
 	# Need the lddtree from the chromite dir.
 	export PATH="${CHROMITE_BIN_DIR}:${PATH}"
-
-	cp -r ${FILESDIR}/* ${S}
-	eapply ${FILESDIR}/factory_shim.patch
-
+  cp -r ${FILESDIR}/* ${S}
+  eapply ${FILESDIR}/factory_shim.patch
 	eapply_user
 }
 
@@ -217,11 +210,18 @@ src_compile() {
 	einfo "Building targets: ${targets[*]:-(only running tests)}"
 
 	if [[ ${#targets[@]} -gt 0 ]]; then
+		local tpm_type="default"
+		if use cr50_onboard || use ti50_onboard; then
+			tpm_type="cros"
+		elif use tpm; then
+			tpm_type="infineon"
+		fi
 		emake SYSROOT="${SYSROOT}" \
 			BOARD="$(get_current_board_with_variant)" \
 			DETACHABLE="$(usex detachable 1 0)" \
 			INCLUDE_ECTOOL="$(usex cros_ec_utils 1 0)" \
 			INCLUDE_FACTORY_UFS="$(usex ufs 1 0)" \
+			FACTORY_TPM_SCRIPT="${tpm_type}" \
 			INCLUDE_FIT_PICKER="$(usex device_tree 1 0)" \
 			INCLUDE_NVME_CLI="$(usex nvme 1 0)" \
 			LEGACY_UI="$(usex legacy_firmware_ui 1 0)" \
