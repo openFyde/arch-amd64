@@ -3,7 +3,6 @@
 
 EAPI=5
 EGIT_REPO_URI="${OPENFYDE_GIT_HOST_URL}/fydeos-refind-theme.git"
-EGIT_REPO_URI="git@gitlab.fydeos.xyz:Su/fydeos-refind-theme.git"
 EGIT_BRANCH="master"
 
 inherit git-r3
