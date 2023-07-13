@@ -87,7 +87,7 @@ cmp_files() {
 #find ext4 file system exist in a partition (like /dev/sda5)
 does_ext4_exist() {
   local dev=$1
-  dumpe2fs -h $dev >null 2>&1; 
+  dumpe2fs -h $dev >null 2>&1;
 }
 
 create_dir() {
@@ -98,7 +98,7 @@ create_dir() {
 
 touch_dir() {
   if [ -d $1 ]; then
-    touch $1/${FYDEOS_FINGERPRINT}  
+    touch $1/${FYDEOS_FINGERPRINT}
   fi
 }
 
@@ -107,7 +107,7 @@ list_touched_dir() {
     for v_dir in `find $1 -name ${FYDEOS_FINGERPRINT}`; do
       echo ${v_dir%/*}
     done
-  fi   
+  fi
 }
 
 remove_touched_dir() {
@@ -115,7 +115,7 @@ remove_touched_dir() {
     for v_dir in `find $1 -name ${FYDEOS_FINGERPRINT}`; do
       rm -rf ${v_dir%/*}
     done
-  fi  
+  fi
 }
 
 info_init() {
@@ -159,7 +159,7 @@ create_dualboot_image() {
     rm -f $img
   fi
   info "Creating FydeOS multi-boot image..."
-  fallocate -l $(($imgspace*1024)) $img
+  truncate -s $(($imgspace*1024)) $img
   info "Allocate :${img}"
   local loopdev=$(load_img_to_dev $img)
   info "Installing FydeOS image..."
@@ -253,7 +253,7 @@ is_efi_in_boot_entries() {
 get_boot_entry_by_path() {
   local efi_path=$(convert_efi_path $1)
   local entry=$(efibootmgr -v | grep -i "$efi_path" | head -n 1)
-  echo $entry | cut -c 5-8    
+  echo $entry | cut -c 5-8
 }
 
 list_all_efi() {
@@ -261,7 +261,7 @@ list_all_efi() {
   local efi_files=$(find $efi_mnt -name *.efi)
   for efi in $efi_files; do
     echo ${efi#$efi_mnt}
-  done    
+  done
 }
 
 is_efi_first_boot_entry() {
@@ -310,7 +310,7 @@ safe_format() {
     umount "$partdev" || die "The partition is being used, abort..."
   fi
   info "Formatting partition:${partdev}..."
-  mkfs.ext4 -F "$partdev" || die "Safe format, mkfs error, abort."
+  mkfs.ext2 -F "$partdev" || die "Safe format, mkfs error, abort."
   info "Modifying multi-boot partition label..."
   set_dualboot_part "$partdev"
   info "Safe format ${partdev} done."

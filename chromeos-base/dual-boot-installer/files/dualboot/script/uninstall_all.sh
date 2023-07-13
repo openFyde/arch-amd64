@@ -62,7 +62,7 @@ kill_dualboot_chrome_install() {
   sleep 2
 }
 
-_main() {
+main() {
   info "Removing FydeOS grub and rEFInd..."
   for efi_part in $(get_efi_part); do
     efi_dir=$(get_mnt_of_part $efi_part)
