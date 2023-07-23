@@ -12,6 +12,7 @@ HOMEPAGE="https://fydeos.com"
 
 SLOT="0"
 KEYWORDS="amd64 x86"
+IUSE="fydeos"
 LICENSE="GPL-3"
 
 RDEPEND="
@@ -32,6 +33,13 @@ grub_args=(
     part_gpt test fat ext2 hfs hfsplus normal boot chain loopback gptpriority
     efi_gop configfile linux search echo cat
   )
+
+src_prepare() {
+    default
+    if ! use fydeos; then
+       cp icons/os_openfyde.png icons/os_fydeos.png
+    fi
+}
 
 src_compile() {
   cat ${SYSROOT}/usr/sbin/chromeos-install | \

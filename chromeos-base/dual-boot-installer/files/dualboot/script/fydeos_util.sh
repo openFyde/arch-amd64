@@ -12,6 +12,10 @@ is_dualboot() {
   [ -n "$(grep fydeos_dualboot /proc/cmdline)" ]
 }
 
+is_openfyde() {
+    cat /etc/lsb-release | grep CHROMEOS_RELEASE_BOARD | grep -qi openfyde
+}
+
 # get disk device from partition device.
 # para $1: /dev/sda1 return /dev/sda    $1: /dev/mmcblk0p3 return /dev/mmcblk0
 # para $1: /dev/nvme0n1p10 return /dev/nvme0n1
