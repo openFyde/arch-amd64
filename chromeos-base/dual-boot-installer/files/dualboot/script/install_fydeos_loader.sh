@@ -29,6 +29,12 @@ set -e
 
 . $DUAL_SCRIPT_DIR/fydeos_util.sh
 
+if is_openfyde; then
+  EFI="/EFI/openfyde"
+  BOOT_LOADER_DIR="/usr/share/dualboot/openfyde"
+  BOOT_FILES="bootx64.efi os_openfyde.png"
+fi
+
 print_version() {
     echo "$SELF version:${VERSION}, maintained by Fyde Innovations. All rights reserved."
 }
@@ -36,7 +42,7 @@ print_version() {
 print_usage() {
     print_version
     echo
-    echo "Installing FydeOS bootloader for multi-boot scheme."
+    echo "Installing openFyde/FydeOS bootloader for multi-boot scheme."
     echo "Usage: $SELF [-d | --dst <target dev or folder>] [-h | --help]
        Example: 
            $SELF -d /dev/sda1    #partition as target
@@ -69,7 +75,7 @@ dual_boot_dev=$(get_dualboot_part)
 _main() {
 	local target_dir=${partmnt}${EFI}
   local extra_flags=$(get_extra_flags)
-  info "Installing FydeOS bootloader..."
+  info "Installing openFyde/FydeOS bootloader..."
   info "Extra commandline flags: $extra_flags"
   create_dir $target_dir
   touch_dir $target_dir
@@ -84,7 +90,7 @@ _main() {
 
 main() {
   if [ -z "$dual_boot_dev" ]; then
-    die "FydeOS multi-boot partition not found, abort."
+    die "openFyde/FydeOS multi-boot partition not found, abort."
   fi
   while [[ $# -gt 0 ]]; do
       opt=$1

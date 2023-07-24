@@ -10,6 +10,9 @@ set -e
 
 . $DUAL_SCRIPT_DIR/fydeos_util.sh
 
+is_openfyde && KERNEL_A="openfyde_vmlinuzA"
+is_openfyde && KERNEL_B="openfyde_vmlinuzB"
+
 print_version() {
     echo "$SELF version:${VERSION}, maintained by Fyde Innovations. All rights reserved."
 }
@@ -17,7 +20,7 @@ print_version() {
 print_usage() {
     print_version
     echo
-    echo "Installing or updating kernel and initramfs for FydeOS multi-boot configuration."
+    echo "Installing or updating kernel and initramfs for openFyde/FydeOS multi-boot configuration."
     echo "Usage: $SELF [-d | --dst <target dev or folder>] [-h | --help]
        Example: 
            $SELF -d /dev/sda5    #partition device as target

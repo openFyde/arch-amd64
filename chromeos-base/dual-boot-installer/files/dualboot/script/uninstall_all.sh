@@ -12,10 +12,10 @@ print_version() {
 print_usage() {
     print_version
     echo
-    echo "Uninstall FydeOS multi-boot scheme"
+    echo "Uninstall openFyde/FydeOS multi-boot scheme"
     echo "Usage: $SELF [-h | --help]
        Example:
-           $SELF                 #Uninstall FydeOS multi-boot on hard drive.
+           $SELF                 #Uninstall openFyde/FydeOS multi-boot on hard drive.
        "
 }
 
@@ -28,7 +28,8 @@ remove_boot_entry() {
 
 delete_dualboot_loop_dev() {
   mnt="$1"
-  losetup | grep "${mnt}/fydeos/fydeos_dual_boot.img" | awk '{print $1}' | while read dev; do
+  local image="$DUALBOOT_IMG"
+  losetup | grep "${mnt}/${image}" | awk '{print $1}' | while read dev; do
     info "Deleting loop device $dev..."
     losetup | while read line; do
       local temp_back_file=$(echo $line | awk '{print $6}')
@@ -39,6 +40,7 @@ delete_dualboot_loop_dev() {
     done
     losetup -d "$dev"
   done
+
   sleep 2
 }
 
@@ -63,7 +65,7 @@ kill_dualboot_chrome_install() {
 }
 
 main() {
-  info "Removing FydeOS grub and rEFInd..."
+  info "Removing openFyde/FydeOS grub and rEFInd..."
   for efi_part in $(get_efi_part); do
     efi_dir=$(get_mnt_of_part $efi_part)
     for fyde_dir in $(list_touched_dir $efi_dir); do
@@ -73,7 +75,7 @@ main() {
       rm -rf $fyde_dir
     done
   done
-  info "Removing FydeOS multi-boot partition..."
+  info "Removing openFyde/FydeOS multi-boot partition..."
   dualboot_part=$(get_dualboot_part)
   dualboot_mnt=$(get_mnt_of_part "$dualboot_part")
   if [ -n "${dualboot_part}" ]; then

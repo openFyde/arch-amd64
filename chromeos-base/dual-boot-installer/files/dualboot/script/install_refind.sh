@@ -22,7 +22,7 @@ print_version() {
 print_usage() {
   print_version
   echo
-  echo "Install rEFInd boot manager ${refind_version} for FydeOS multi-boot."
+  echo "Install rEFInd boot manager ${refind_version} for openFyde/FydeOS multi-boot."
   echo "Usage: $SELF [-d | --dst <target dev or folder>] [-h | --help]
        Example: 
            $SELF -d /dev/sda1    #partition as target

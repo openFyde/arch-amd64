@@ -28,35 +28,44 @@ DEPEND="
 	chromeos-base/chromeos-installer
 "
 grub_args=(
-    -p "/efi/fydeos"
     -c embedded.cfg
     part_gpt test fat ext2 hfs hfsplus normal boot chain loopback gptpriority
     efi_gop configfile linux search echo cat
   )
-
-src_prepare() {
-    default
-    if ! use fydeos; then
-       cp icons/os_openfyde.png icons/os_fydeos.png
-    fi
-}
 
 src_compile() {
   cat ${SYSROOT}/usr/sbin/chromeos-install | \
 	   sed -e "s/\/sbin\/blockdev\ --rereadpt/partx\ -a/g" > \
 	   chromeos-install.sh
   echo 'configfile $cmdpath/grub.cfg' > embedded.cfg
-	grub-mkimage -O x86_64-efi -o bootx64.efi "${grub_args[@]}"    
+
+  if use fydeos; then
+	 grub-mkimage -O x86_64-efi -o bootx64.efi -p "/efi/fydeos" "${grub_args[@]}"
+  else
+     grub-mkimage -O x86_64-efi -o bootx64.efi  -p "/efi/openfyde" "${grub_args[@]}"
+  fi
 }
 
 src_install() {
     local dual_dir=${FILESDIR}/dualboot
     insinto /usr/share/dualboot
-    doins -r ${dual_dir}/fydeos
+
+    if use fydeos; then
+       doins -r "${dual_dir}/fydeos"
+    else
+       doins -r "${dual_dir}/openfyde"
+    fi
+
     doins -r ${dual_dir}/refind
+
     doins ${dual_dir}/script/BOOT.CSV
 
-    insinto /usr/share/dualboot/fydeos
+    if use fydeos; then
+       insinto /usr/share/dualboot/fydeos
+    else
+        insinto /usr/share/dualboot/openfyde
+    fi
+
     doins bootx64.efi
 
     exeinto /usr/share/dualboot

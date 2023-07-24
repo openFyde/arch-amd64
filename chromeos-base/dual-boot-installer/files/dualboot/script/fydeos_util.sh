@@ -13,7 +13,7 @@ is_dualboot() {
 }
 
 is_openfyde() {
-    cat /etc/lsb-release | grep CHROMEOS_RELEASE_BOARD | grep -qi openfyde
+  cat /etc/lsb-release | grep CHROMEOS_RELEASE_BOARD | grep -qi openfyde
 }
 
 # get disk device from partition device.
@@ -157,16 +157,16 @@ create_dualboot_image() {
   local freespace=$(get_partition_free_space $partdev)
   local imgspace=$(($freespace/100*100 - 1024*100))
   if [ $imgspace -lt $((1024*1024*9)) ];then
-    die "Need more free space to create FydeOS image, abort."
+    die "Need more free space to create openFyde/FydeOS image, abort."
   fi
   if [ -f $img ];then
     rm -f $img
   fi
-  info "Creating FydeOS multi-boot image..."
+  info "Creating openFyde/FydeOS multi-boot image..."
   truncate -s $(($imgspace*1024)) $img
   info "Allocate :${img}"
   local loopdev=$(load_img_to_dev $img)
-  info "Installing FydeOS image..."
+  info "Installing openFyde/FydeOS image..."
   ${CHROME_INSTALL_CMD} --yes --dst ${loopdev}
   info "Recycling system resources..."
   partx -d ${loopdev}
