@@ -1,6 +1,5 @@
 #!/bin/bash
-FYDEOS_DUALBOOT_LABEL="FYDEOS-DUAL-BOOT"
-OPENFYDE_DUALBOOT_LABEL="OPENFYDE-DUAL-BOOT"
+DUALBOOT_LABEL="FYDEOS-DUAL-BOOT"
 CHROME_INSTALL_CMD="/usr/share/dualboot/chromeos-install.sh"
 LOG_MOD=${LOG_MOD:-fydeos_dualboot}
 LOG_FILE=/tmp/fydeos_dualboot.log
@@ -15,14 +14,6 @@ is_dualboot() {
 
 is_openfyde() {
   cat /etc/lsb-release | grep CHROMEOS_RELEASE_BOARD | grep -qi openfyde
-}
-
-get_dualboot_label() {
-  if ! is_openfyde; then
-    echo "$FYDEOS_DUALBOOT_LABEL"
-  else
-    echo "$OPENFYDE_DUALBOOT_LABEL"
-  fi
 }
 
 # get disk device from partition device.
@@ -202,14 +193,14 @@ umount_dev() {
 }
 
 get_dualboot_part() {
-  cgpt find -l $(get_dualboot_label)
+  cgpt find -l $DUALBOOT_LABEL
 }
 
 set_dualboot_part() {
   local part_dev=$1
   if [ -z "$(get_dualboot_part)" ];then
-    info "Running command: cgpt add -i $(parse_partition_num $part_dev) -l $(get_dualboot_label) $(parse_disk_dev $part_dev)"
-    cgpt add -i $(parse_partition_num $part_dev) -l $(get_dualboot_label) $(parse_disk_dev $part_dev) || info "set_dualboot_part, cgpt add boot entry error"
+    info "Running command: cgpt add -i $(parse_partition_num $part_dev) -l $DUALBOOT_LABEL $(parse_disk_dev $part_dev)"
+    cgpt add -i $(parse_partition_num $part_dev) -l $DUALBOOT_LABEL $(parse_disk_dev $part_dev) || info "set_dualboot_part, cgpt add boot entry error"
   fi
   sync_label $part_dev
 }
