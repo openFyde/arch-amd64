@@ -1,8 +1,8 @@
 #FydeOS 2020-08-24 Author: yang@fydeos.io
 defaultA=0
 defaultB=1
-set img=/fydeos/fydeos_dual_boot.img
-search --label --set root OPENFYDE-DUAL-BOOT
+set img=/openfyde/openfyde_dual_boot.img
+search --label --set root OFYDE-DUAL-BOOT
 loopback loopdev $img
 gptpriority loopdev 2 prioA
 gptpriority loopdev 4 prioB

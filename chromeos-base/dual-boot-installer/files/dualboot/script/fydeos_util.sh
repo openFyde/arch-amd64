@@ -1,12 +1,14 @@
 #!/bin/bash
 FYDEOS_DUALBOOT_LABEL="FYDEOS-DUAL-BOOT"
-OPENFYDE_DUALBOOT_LABEL="OPENFYDE-DUAL-BOOT"
+OPENFYDE_DUALBOOT_LABEL="OFYDE-DUAL-BOOT"
 CHROME_INSTALL_CMD="/usr/share/dualboot/chromeos-install.sh"
 LOG_MOD=${LOG_MOD:-fydeos_dualboot}
 LOG_FILE=/tmp/fydeos_dualboot.log
-DUALBOOT_DIR="/fydeos"
-DUALBOOT_IMG="${DUALBOOT_DIR}/fydeos_dual_boot.img"
-VERSION="2.0.3"
+FYDEOS_DUALBOOT_DIR="/fydeos"
+OPENFYDE_DUALBOOT_DIR="/openfyde"
+FYDEOS_DUALBOOT_IMG="/fydeos/fydeos_dual_boot.img"
+OPENFYDE_DUALBOOT_IMG="/openfyde/openfyde_dual_boot.img"
+VERSION="2.0.4"
 FYDEOS_FINGERPRINT=".fydeos_dualboot"
 # test if system in dualboot mode
 is_dualboot() {
@@ -22,6 +24,22 @@ get_dualboot_label() {
     echo "$FYDEOS_DUALBOOT_LABEL"
   else
     echo "$OPENFYDE_DUALBOOT_LABEL"
+  fi
+}
+
+get_dualboot_dir() {
+  if ! is_openfyde; then
+    echo "$FYDEOS_DUALBOOT_DIR"
+  else
+    echo "$OPENFYDE_DUALBOOT_DIR"
+  fi
+}
+
+get_dualboot_img() {
+  if ! is_openfyde; then
+    echo "$FYDEOS_DUALBOOT_IMG"
+  else
+    echo "$OPENFYDE_DUALBOOT_IMG"
   fi
 }
 
@@ -160,8 +178,10 @@ get_partition_free_space() {
 create_dualboot_image() {
   local part_dev=$1
   local mnt_dir=$(get_mnt_of_part $part_dev)
-  create_dir ${mnt_dir}${DUALBOOT_DIR}
-  local img="${mnt_dir}${DUALBOOT_IMG}"
+  local _dir="$(get_dualboot_dir)"
+  local _img="$(get_dualboot_img)"
+  create_dir "${mnt_dir}${_dir}"
+  local img="${mnt_dir}${_img}"
   local partdev=$(rootdev ${mnt_dir})
   local freespace=$(get_partition_free_space $partdev)
   local imgspace=$(($freespace/100*100 - 1024*100))

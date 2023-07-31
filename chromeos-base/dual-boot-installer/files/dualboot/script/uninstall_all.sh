@@ -28,7 +28,7 @@ remove_boot_entry() {
 
 delete_dualboot_loop_dev() {
   mnt="$1"
-  local image="$DUALBOOT_IMG"
+  local image="$(get_dualboot_img)"
   losetup | grep "${mnt}/${image}" | awk '{print $1}' | while read dev; do
     info "Deleting loop device $dev..."
     losetup | while read line; do
