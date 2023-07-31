@@ -152,6 +152,12 @@ src_prepare() {
 	export PATH="${CHROMITE_BIN_DIR}:${PATH}"
 
 	eapply_user
+
+    if ! use fydeos; then
+        cp -r
+    else
+
+    fi
 }
 
 src_compile() {

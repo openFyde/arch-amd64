@@ -21,6 +21,7 @@ IUSE="${IUSE} legacy_firmware_ui -mtd +power_management"
 IUSE="${IUSE} unibuild +oobe_config no_factory_flow"
 IUSE="${IUSE} manatee_performance_tools nvme ufs"
 IUSE="${IUSE} cr50_onboard ti50_onboard tpm"
+IUSE="${IUSE} fydeos"
 
 # Build Targets
 TARGETS_IUSE="
@@ -190,6 +191,13 @@ src_prepare() {
 	# Need the lddtree from the chromite dir.
 	export PATH="${CHROMITE_BIN_DIR}:${PATH}"
   cp -r ${FILESDIR}/* ${S}
+
+  if ! use fydeos; then
+     cp "${S}/dual_boot/openfyde_dual_boot_mount.sh" "${S}/dual_boot/dual_boot_mount.sh"
+  else
+    cp "${S}/dual_boot/fydeos_dual_boot_mount.sh" "${S}/dual_boot/dual_boot_mount.sh"
+  fi
+
   eapply ${FILESDIR}/factory_shim.patch
 	eapply_user
 }
