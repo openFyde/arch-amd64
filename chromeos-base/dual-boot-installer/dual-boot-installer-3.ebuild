@@ -18,8 +18,8 @@ LICENSE="GPL-3"
 RDEPEND="
 	sys-apps/diffutils
 	sys-apps/gptfdisk[-ncurses]
-    sys-boot/efibootmgr
 	sys-block/parted
+  sys-boot/efibootmgr
 "
 
 DEPEND="

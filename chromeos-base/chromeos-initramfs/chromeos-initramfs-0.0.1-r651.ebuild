@@ -1,9 +1,9 @@
 # Copyright 2012 The ChromiumOS Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
-CROS_WORKON_COMMIT="54229c6cd70051e96c4a225023d74fc91304fca1"
-CROS_WORKON_TREE="9edd3b4b848a11f825123435b0c095e9361f908c"
+EAPI="7"
+CROS_WORKON_COMMIT="b51fc91f01c8c4abd08f28692ff7de709749d058"
+CROS_WORKON_TREE="90fc078d56dbd1e089f14fb46ed193e0e59f2433"
 CROS_WORKON_PROJECT="chromiumos/platform/initramfs"
 CROS_WORKON_LOCALNAME="platform/initramfs"
 CROS_WORKON_OUTOFTREE_BUILD="1"
@@ -19,7 +19,7 @@ KEYWORDS="*"
 IUSE="+cros_ec_utils detachable device_tree +interactive_recovery"
 IUSE="${IUSE} legacy_firmware_ui -mtd +power_management"
 IUSE="${IUSE} unibuild +oobe_config no_factory_flow"
-IUSE="${IUSE} manatee_performance_tools nvme ufs"
+IUSE="${IUSE} nvme ufs"
 IUSE="${IUSE} cr50_onboard ti50_onboard tpm"
 IUSE="${IUSE} fydeos"
 
@@ -27,11 +27,11 @@ IUSE="${IUSE} fydeos"
 TARGETS_IUSE="
 	factory_netboot_ramfs
 	factory_shim_ramfs
-	hypervisor_ramfs
 	recovery_ramfs
 	minios_ramfs
-  dual_boot_ramfs
-  core_util_ramfs
+	flexor_ramfs
+	dual_boot_ramfs
+	core_util_ramfs
 "
 IUSE="${IUSE} test ${TARGETS_IUSE}"
 # Allow absence of the build target when running tests via cros_run_unit_tests.
@@ -50,25 +50,36 @@ RECOVERY_DEPENDS="
 	"
 
 MINIOS_DEPENDS="
+	app-shells/bash
 	chromeos-base/chromeos-installer
 	chromeos-base/common-assets
 	chromeos-base/factory_installer
 	chromeos-base/minijail
 	chromeos-base/minios
+	chromeos-base/screen-capture-utils
 	chromeos-base/update-utils
 	chromeos-base/vboot_reference
 	chromeos-base/vpd
 	dev-util/strace
+	net-firewall/iptables
 	net-misc/curl
 	net-misc/dhcp
 	net-misc/dhcpcd
 	net-wireless/wpa_supplicant-cros
 	nvme? ( sys-apps/nvme-cli )
+	sys-apps/coreutils
 	sys-apps/flashrom
 	sys-apps/pv
 	virtual/assets
 	virtual/chromeos-regions
 	"
+
+FLEXOR_DEPENDS="
+	app-shells/bash
+	chromeos-base/chromeos-installer
+	chromeos-base/common-assets
+	chromeos-base/flexor
+"
 
 # Packages required for building factory installer shim initramfs.
 FACTORY_SHIM_DEPENDS="
@@ -107,23 +118,6 @@ FACTORY_NETBOOT_DEPENDS="
 	sys-fs/e2fsprogs
 	sys-libs/ncurses
 	virtual/udev
-	"
-
-# Packages required for building hypervisor initramfs.
-HYPERVISOR_DEPENDS="
-	chromeos-base/crosvm
-	chromeos-base/sirenia
-	sys-apps/coreboot-utils
-	virtual/linux-sources
-	virtual/manatee-apps
-	manatee_performance_tools? (
-		app-admin/sysstat
-		dev-util/strace
-		dev-util/turbostat
-		dev-util/perf
-		dev-util/trace-cmd
-		chromeos-base/perfetto
-	)
 	"
 FYDEOS_DEPENDS="
        app-arch/lbzip2
@@ -165,24 +159,20 @@ DEPEND="
 		factory_shim_ramfs? ( ${FACTORY_SHIM_DEPENDS} )
 	)
 	recovery_ramfs? ( ${RECOVERY_DEPENDS} )
-	hypervisor_ramfs? ( ${HYPERVISOR_DEPENDS} )
 	minios_ramfs? ( ${MINIOS_DEPENDS} )
-  dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
-  core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
+	flexor_ramfs? ( ${FLEXOR_DEPENDS} )
+	dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
+	core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
 	sys-apps/busybox[-make-symlinks]
 	sys-fs/lvm2
-	virtual/chromeos-bsp-initramfs
 	chromeos-base/chromeos-init
 	sys-apps/frecon-lite
 	power_management? ( chromeos-base/power_manager )
 	unibuild? ( chromeos-base/chromeos-config )
 	chromeos-base/chromeos-config-tools
-	test? ( dev-util/shunit2 )"
+"
 
 RDEPEND=""
-
-BDEPEND="
-	hypervisor_ramfs? ( chromeos-base/sirenia-tools )"
 
 src_prepare() {
 	export BUILD_LIBRARY_DIR="${CHROOT_SOURCE_ROOT}/src/scripts/build_library"
@@ -235,7 +225,6 @@ src_compile() {
 			LEGACY_UI="$(usex legacy_firmware_ui 1 0)" \
 			LIBDIR="$(get_libdir)" \
 			LOCALE_LIST="${RECOVERY_LOCALES:-}" \
-			MANATEE_PERFORMANCE_TOOLS="$(usex manatee_performance_tools 1 0)" \
 			OOBE_CONFIG="$(usex oobe_config 1 0)" \
 			OUTPUT_DIR="${WORKDIR}" EXTRA_BIN_DEPS="${deps[*]}" \
 			UNIBUILD="$(usex unibuild 1 0)" \
