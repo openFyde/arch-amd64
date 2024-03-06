@@ -1,7 +1,8 @@
 #!/bin/bash
 FYDEOS_DUALBOOT_LABEL="FYDEOS-DUAL-BOOT"
 OPENFYDE_DUALBOOT_LABEL="OFYDE-DUAL-BOOT"
-CHROME_INSTALL_CMD="/usr/share/dualboot/chromeos-install.sh"
+#CHROME_INSTALL_CMD="/usr/share/dualboot/chromeos-install.sh"
+CHROME_INSTALL_CMD="/usr/sbin/chromeos-install"
 LOG_MOD=${LOG_MOD:-fydeos_dualboot}
 LOG_FILE=/tmp/fydeos_dualboot.log
 FYDEOS_DUALBOOT_DIR="/fydeos"
@@ -11,6 +12,7 @@ OPENFYDE_DUALBOOT_IMG="/openfyde/openfyde_dual_boot.img"
 VERSION="2.0.4"
 FYDEOS_FINGERPRINT=".fydeos_dualboot"
 # test if system in dualboot mode
+set -e
 is_dualboot() {
   [ -n "$(grep fydeos_dualboot /proc/cmdline)" ]
 }
@@ -210,9 +212,7 @@ load_img_to_dev() {
   if [ ! -f $img ]; then
     die "Disk image does not exist, abort."
   fi
-  local loopdev=$(losetup -f)
-  losetup $loopdev $img
-  echo $loopdev
+  losetup -f -P --show $img
 }
 
 umount_dev() {

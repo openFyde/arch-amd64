@@ -151,7 +151,7 @@ move_mounts() {
 
 use_new_root() {
   move_mounts
-  
+
   # Chroot into newroot, erase the contents of the old /, and exec real init.
   info "About to switch root... Check VT2/3/4 if you stuck for a long time."
   info "switch root:${NEWROOT_MNT}, arg: $@"
@@ -166,7 +166,7 @@ use_new_root() {
 
   ###` -v prints upstart info in kmsg (available in INFO_TTY).
 
-  exec switch_root "${NEWROOT_MNT}" /sbin/init "$@" 
+  exec switch_root "${NEWROOT_MNT}" /sbin/init "$@"
 }
 
 check_ota_and_update() {
@@ -220,7 +220,7 @@ main() {
   enable_debug_console "${DEBUG_TTY}"
 
   info "Bootstrapping dual boot overlay."
-  
+
   #switch to new root directory which is offered by overlayfs
   local loopdev_root=$(mount_image ${NEWROOT_MNT})
 
@@ -231,7 +231,7 @@ main() {
   killall frecon-lite || true
   killall udevd || true
   killall less script || true
-  NEWROOT_MNT=$loopdev_root 
+  NEWROOT_MNT=$loopdev_root
   # Switch to the new root.
   use_new_root "$@"
   # Should never reach here.

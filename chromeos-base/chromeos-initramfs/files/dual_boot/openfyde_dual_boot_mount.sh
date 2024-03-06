@@ -45,8 +45,7 @@ mount_image() {
   mount_dualboot_partiton $root
   local img=$(ls ${root}${FYDEOS_IMG})
   local loopdev=$(losetup -f)
-  losetup $loopdev $img > /dev/null 2>&1
-  partx -a $loopdev > /dev/null 2>&1
+  losetup -P  $loopdev $img > /dev/null 2>&1
   local bootdev=$(get_boot_dev  $loopdev)
   ROOT_MNT="${root}${ROOT_MNT}"
   create_dir $ROOT_MNT

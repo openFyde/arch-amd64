@@ -1,8 +1,8 @@
 #FydeOS 2020-08-24 Author: yang@fydeos.io
 defaultA=0
 defaultB=1
-set img=/openfyde/openfyde_dual_boot.img
-search --label --set root OFYDE-DUAL-BOOT
+search --label --set dualboot_part OFYDE-DUAL-BOOT
+set img=($dualboot_part)/openfyde/openfyde_dual_boot.img
 loopback loopdev $img
 gptpriority loopdev 2 prioA
 gptpriority loopdev 4 prioB
@@ -13,20 +13,22 @@ else
 fi
 
 set timeout=1
+set root=loopdev,gpt12
 
 # NOTE: find rootfs by label (not partion label)
 
 menuentry "openFyde multi-boot A" {
-  linux (loopdev,gpt12)/syslinux/vmlinuz.A init=/sbin/init root=%ROOTDEV% boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug  fydeos_dualboot %EXTRA_FLAG%
-  initrd /boot/dual_boot_ramfs.cpio
+  linux /syslinux/vmlinuz.A init=/sbin/init boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi fydeos_dualboot %EXTRA_FLAG%
+  initrd ($dualboot_part)/boot/dual_boot_ramfs.cpio
 }
 
 menuentry "openFyde multi-boot B" {
-  linux (loopdev,gpt12)/syslinux/vmlinuz.B init=/sbin/init root=%ROOTDEV% boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug  fydeos_dualboot %EXTRA_FLAG%
-  initrd /boot/dual_boot_ramfs.cpio
+  linux /syslinux/vmlinuz.B init=/sbin/init boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi fydeos_dualboot %EXTRA_FLAG%
+  initrd ($dualboot_part)/boot/dual_boot_ramfs.cpio
 }
 
 menuentry "FydeOS Recovery Tools" {
-  linux /boot/openfyde_vmlinuzB init=/sbin/init root=%ROOTDEV% boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi cros_debug %EXTRA_FLAG%
+  set root=$dualboot_part
+  linux /boot/openfyde_vmlinuzB init=/sbin/init root=%ROOTDEV% boot=local rootwait noresume noswap ro loglevel=7 console= i915.modeset=1 cros_efi %EXTRA_FLAG%
   initrd /boot/core_util_ramfs.cpio
 }

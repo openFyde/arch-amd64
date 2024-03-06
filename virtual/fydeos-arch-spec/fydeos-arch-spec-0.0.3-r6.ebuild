@@ -17,6 +17,7 @@ RDEPEND="
     chromeos-base/fydeos-hardware-tuner
     app-arch/zstd
     chromeos-base/suspend-mode-switch
+    chromeos-base/crossystem_mode-switch
 "
 
 DEPEND="${RDEPEND}"

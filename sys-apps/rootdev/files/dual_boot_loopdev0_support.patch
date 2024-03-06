@@ -1,28 +1,13 @@
 diff --git a/rootdev.c b/rootdev.c
-old mode 100644
-new mode 100755
-index 037140c..24eeeeb
+index eae6212..c13cf79 100644
 --- a/rootdev.c
 +++ b/rootdev.c
-@@ -35,6 +35,7 @@
+@@ -173,7 +173,7 @@ static int match_sysfs_device(char *name, size_t name_len,
+       break;
  
- static const char *kDefaultSearchPath = "/sys/block";
- static const char *kDefaultDevPath = "/dev";
-+static const char *kFydeOSLoopPath = "/sys/block/loop0";
- 
- /* Encode the root device structuring here for Chromium OS */
- static const char kActiveRoot[] = "/dev/ACTIVE_ROOT";
-@@ -265,8 +266,11 @@ int rootdev_get_device(char *dst, size_t size, dev_t dev,
- 
-   snprintf(dst, size, "%s", search);
-   if (match_sysfs_device(dst, size, dst, &dev, 0) <= 0) {
--    fprintf (stderr, "unable to find match\n");
--    return 1;
-+    snprintf(dst, size, "%s", kFydeOSLoopPath);
-+    if (match_sysfs_device(dst, size, dst, &dev, 0) <= 0) {
-+      fprintf (stderr, "unable to find match\n");
-+      return 1;
-+    }
-   }
- 
-   return 0;
+     /* Recurse one level for devices that may have a matching partition. */
+-    if (major(found_devt) == major(*dev) && minor(*dev) > minor(found_devt)) {
++    if (!strcmp(entry->d_name, "loop0") ||  (major(found_devt) == major(*dev) && minor(*dev) > minor(found_devt))) {
+       sprintf(working_path, "%s/%s", basedir, entry->d_name);
+       found = match_sysfs_device(name, name_len, working_path, dev, depth + 1);
+       if (found > 0)
