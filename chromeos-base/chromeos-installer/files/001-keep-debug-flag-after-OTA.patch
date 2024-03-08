@@ -1,0 +1,114 @@
+diff --git a/installer/chromeos-postinst b/installer/chromeos-postinst
+index 875a85b4f6..dbd63438ba 100755
+--- a/installer/chromeos-postinst
++++ b/installer/chromeos-postinst
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/bin/bash
+ 
+ # Copyright 2012 The ChromiumOS Authors
+ # Use of this source code is governed by a BSD-style license that can be
+@@ -37,6 +37,90 @@ cleanup() {
+   done
+ }
+ 
++info_to_file() {
++  echo $@ > /tmp/postinst.log
++}
++
++get_slot_from_dev() {
++  local install_dev=$1
++  local part_num=${install_dev: -1}
++  local slot="vmlinuz.A"
++  [ "$part_num" -eq 5 ] && slot="vmlinuz.B"
++  echo $slot
++}
++
++grub_slot_is_dev() {
++  local install_dev=$1
++  local efi_path=$2
++  local grub_cfg="${efi_path}/efi/boot/grub.cfg"
++  local slot=$(get_slot_from_dev $install_dev)
++  if [ -n "$(grep $slot $grub_cfg 2>&1 | grep cros_debug)" ]; then
++    echo 1
++  else
++    echo 0
++  fi
++}
++
++dev_mount_path() {
++  lsblk -o MOUNTPOINT -n $1 2>/dev/null
++}
++
++efi_mount_path() {
++  local install_dev=$1
++  local efi_dev=${install_dev%[0-9]}12
++  local efi_path=$(dev_mount_path $efi_dev)
++  if [ -z "$efi_path" ]; then
++    local tmp_path=$(mktemp -d)
++    mount $efi_dev $tmp_path 2>&1 1>/dev/null && efi_path=$tmp_path
++    MOUNTS="${MOUNTS} $tmp_path"
++  fi
++  echo $efi_path
++}
++
++is_dualboot() {
++  local root_dev=$(rootdev -d -s)
++  if [ -n "$(echo $root_dev | grep loop)" ]; then
++    echo 1
++  else
++    echo 0
++  fi
++}
++
++set_grub_slot_devmode() {
++  local efi_path=$1
++  local devmode=$2
++  local slot=$3
++  local grub_cfg="${efi_path}/efi/boot/grub.cfg"
++  local filter="grep cros_debug"
++  local edit_regex="s/cros_debug//"
++  if [ $devmode -eq 1 ]; then
++    filter="${filter} -v"
++    edit_regex="s/cros_efi/cros_efi\ cros_debug/"
++  fi
++  for line_num in $(grep -n $slot $grub_cfg | $filter | awk 'BEGIN{FS=":"}{print $1}'); do
++    info_to_file "run: sed -i "${line_num}${edit_regex}" $grub_cfg"
++    sed -i "${line_num}${edit_regex}" $grub_cfg
++  done
++}
++
++after_post_install() {
++  local install_dev=$1
++  local is_devmode=$2
++  local efi_path=$(efi_mount_path $install_dev)
++  if [ -z "${efi_path}" ]; then
++    return
++  fi
++  local new_devmode=$(grub_slot_is_dev $install_dev $efi_path)
++  info_to_file "after post install, new devmode:$new_devmode"
++  if [ $new_devmode -ne $is_devmode ]; then
++    set_grub_slot_devmode $efi_path $is_devmode $(get_slot_from_dev $install_dev)
++  fi
++  if [ "$(is_dualboot)" -eq 1 ]; then
++    info_to_file "run update initrd files for dualbot"
++    ${INSTALL_ROOT}/usr/share/dualboot/update_initrd.sh
++  fi
++}
++
+ main() {
+   cd "${INSTALL_ROOT}" || exit 1
+ 
+@@ -49,8 +133,12 @@ main() {
+   done
+ 
+   local install_dev="$1"
++  local efi_path=$(efi_mount_path $install_dev)
++  local is_devmode=$(grub_slot_is_dev $install_dev $efi_path)
++  info_to_file "install:$install_dev origin grub devmode:$is_devmod"
+   shift
+   chroot . /usr/bin/cros_installer --type="postinst" \
+          --install_dev="${install_dev}" --install_dir="/" "$@"
++  after_post_install $install_dev $is_devmode
+ }
+ main "$@"
