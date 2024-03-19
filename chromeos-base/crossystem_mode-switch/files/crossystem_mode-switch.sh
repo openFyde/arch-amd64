@@ -23,6 +23,16 @@ die() {
   exit 1
 }
 
+get_rootdev() {
+  local part=""
+  part=$(rootdev -s)
+  if [[ ! "$part" = *"3" ]] && [[ ! "$part" = *"5" ]]; then
+    echo ""
+    return 1
+  fi
+  echo "${part::-1}"
+}
+
 parse_command_line() {
   for arg in $(cat /proc/cmdline); do
     if [[ $arg == \"* ]]; then
@@ -59,7 +69,12 @@ find_grub_cfg() {
   else
     tmp_grub+=$GRUB_CFG
   fi
+  local rootdev=""
+  rootdev=$(get_rootdev)
   for efi_dev in $(sudo cgpt find -t efi); do
+    if [[ -n "$rootdev" ]] && [[ ! "$efi_dev" = "$rootdev"* ]]; then
+      continue
+    fi
     sudo mount $efi_dev $tmp_mnt || die "failed to mount $efi_dev"
     if [ -f $tmp_grub ]; then
       GRUB_MNT=$tmp_mnt
