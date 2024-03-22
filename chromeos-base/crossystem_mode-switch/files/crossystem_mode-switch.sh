@@ -72,7 +72,7 @@ find_grub_cfg() {
   local rootdev=""
   rootdev=$(get_rootdev)
   for efi_dev in $(sudo cgpt find -t efi); do
-    if [[ -n "$rootdev" ]] && [[ ! "$efi_dev" = "$rootdev"* ]]; then
+    if ! is_dualboot && [[ -n "$rootdev" ]] && [[ ! "$efi_dev" = "$rootdev"* ]]; then
       continue
     fi
     sudo mount $efi_dev $tmp_mnt || die "failed to mount $efi_dev"
