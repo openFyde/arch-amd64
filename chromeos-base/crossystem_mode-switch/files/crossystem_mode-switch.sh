@@ -89,7 +89,7 @@ find_grub_cfg() {
 
 contains_cros_debug() {
   local grub_cfg=$1
-  [ -n "$(grep $ENABLE_KERNEL_FLAG $grub_cfg)" ]
+  [ -n "$(grep -s $ENABLE_KERNEL_FLAG $grub_cfg)" ]
 }
 
 cros_debug_state() {
@@ -149,12 +149,12 @@ enable_all_rootfs_rw() {
   for rootfs_index in 3 5;do
     local root_offset_sector=$(partoffset $ssd_device $rootfs_index)
     local root_offset_bytes=$((root_offset_sector * bs))
-    if ! is_ext2 $ssd_device $root_offset_bytes; then
+    if ! is_ext2 $ssd_device $root_offset_bytes > /dev/null 2>&1; then
       debug_msg "Non-ext2 partition: $ssd_device$rootfs_index, skip."
-    elif ! rw_mount_disabled "$ssd_device" "$root_offset_bytes"; then
+    elif ! rw_mount_disabled "$ssd_device" "$root_offset_bytes" > /dev/null 2>&1 ; then
       debug_msg "Root file system is writable. No need to modify."
     else
-      enable_rw_mount "$ssd_device" "$root_offset_bytes" || die "Failed turning off rootfs RO bit. OS may be corrupted. "
+      enable_rw_mount "$ssd_device" "$root_offset_bytes" > /dev/null 2>&1 || die "Failed turning off rootfs RO bit. OS may be corrupted. "
     fi
   done
 }
@@ -166,7 +166,12 @@ disable-rootfs-verification() {
     cat $grub_cfg | sed s/defaultA=2/defaultA=0/g |sed s/defaultB=3/defaultB=1/g > /tmp/grub_tmp.cfg
     sudo mv /tmp/grub_tmp.cfg $grub_cfg || die "Failed to replace $grub_cfg"
   fi
-  echo "Success to disable rootfs-verification."
+  echo "Successfully disabled rootfs verification. A reboot is required to activate these changes."
+  read -r -p "Would you like to reboot now? [Y/N] " yn
+  if [[ "$yn" == "y" ]] || [[ "$yn" == "Y" ]]; then
+    echo "Rebooting..."
+    reboot
+  fi
 }
 
 cleanup() {
