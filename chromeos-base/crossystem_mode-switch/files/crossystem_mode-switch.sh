@@ -138,7 +138,7 @@ enable-rootfs-verification() {
   fi
   local grub_cfg=$(find_grub_cfg)
   cat $grub_cfg | sed s/defaultA=0/defaultA=2/g |sed s/defaultB=1/defaultB=3/g > /tmp/grub_tmp.cfg
-  sudo mv /tmp/grub_tmp.cfg $grub_cfg || die "Failed to replace $grub_cfg"
+  sudo mv /tmp/grub_tmp.cfg $grub_cfg 2> /dev/null || die "Failed to replace $grub_cfg"
   echo "Success to enable rootfs-verification. Reboot to apply. You can reverse it by running '$0 disable-rootfs-verification'"
 }
 
@@ -164,7 +164,7 @@ disable-rootfs-verification() {
   enable_all_rootfs_rw
   if ! is_dualboot; then
     cat $grub_cfg | sed s/defaultA=2/defaultA=0/g |sed s/defaultB=3/defaultB=1/g > /tmp/grub_tmp.cfg
-    sudo mv /tmp/grub_tmp.cfg $grub_cfg || die "Failed to replace $grub_cfg"
+    sudo mv /tmp/grub_tmp.cfg $grub_cfg 2> /dev/null || die "Failed to replace $grub_cfg"
   fi
   echo "Successfully disabled rootfs verification. A reboot is required to activate these changes."
   read -r -p "Would you like to reboot now? [Y/N] " yn
