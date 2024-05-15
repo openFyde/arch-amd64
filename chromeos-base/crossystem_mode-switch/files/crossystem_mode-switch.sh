@@ -120,6 +120,12 @@ disable_cros_debug() {
 rootfs-verification_state() {
   if [ -n "$(sudo dmsetup ls |grep vroot)" ]; then
     echo "rootfs-verification enabled"
+    return
+  fi
+  local root=$(rootdev)
+  local state_num=$(dd if=$root of=/dev/stdout skip=1127 count=1 bs=1 2>/dev/null |hexdump -e '1/1 "%u"')
+  if [ "$state_num" -eq 255 ]; then
+    echo "rootfs-verification enabled"
   else
     echo "rootfs-verification disabled"
   fi
