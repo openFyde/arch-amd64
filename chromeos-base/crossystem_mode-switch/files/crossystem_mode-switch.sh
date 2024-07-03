@@ -93,7 +93,7 @@ contains_cros_debug() {
 }
 
 cros_debug_state() {
-  if [ "${KERNEL_ARGS[cros_debug]}" -eq 1 ]; then
+  if [ "${KERNEL_ARGS[cros_debug]}" = "1" ]; then
     echo "dev"
   else
     echo "base"
