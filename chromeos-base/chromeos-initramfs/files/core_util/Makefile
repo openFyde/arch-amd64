@@ -9,13 +9,13 @@ BIN_DEPS= \
 	/bin/sh
 
 # Extra dependency, should be set by builder configuration.
-EXTRA_BIN_DEPS?=
+EXTRA_BIN_DEPS ?=
 
 # Programs required by netboot installer
 NETBOOT_BIN_DEPS= \
 	/bin/dd \
 	/bin/ip \
-	/bin/kmod \
+	/usr/bin/kmod \
 	/bin/udevadm \
 	/bin/xxd \
 	/sbin/blockdev \

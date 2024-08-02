@@ -2,8 +2,8 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="7"
-CROS_WORKON_COMMIT="b51fc91f01c8c4abd08f28692ff7de709749d058"
-CROS_WORKON_TREE="90fc078d56dbd1e089f14fb46ed193e0e59f2433"
+CROS_WORKON_COMMIT="3e0cf984f4a96cd3ecadc3df847ca58c839d62db"
+CROS_WORKON_TREE="414f86a94beaecc20b234fe01dfabd80835c551a"
 CROS_WORKON_PROJECT="chromiumos/platform/initramfs"
 CROS_WORKON_LOCALNAME="platform/initramfs"
 CROS_WORKON_OUTOFTREE_BUILD="1"
@@ -30,9 +30,8 @@ TARGETS_IUSE="
 	recovery_ramfs
 	minios_ramfs
 	flexor_ramfs
-	dual_boot_ramfs
-	core_util_ramfs
 "
+TARGETS_IUSE="${TARGETS_IUSE} dual_boot_ramfs core_util_ramfs"
 IUSE="${IUSE} test ${TARGETS_IUSE}"
 # Allow absence of the build target when running tests via cros_run_unit_tests.
 REQUIRED_USE="|| ( test ${TARGETS_IUSE} )"
@@ -64,7 +63,7 @@ MINIOS_DEPENDS="
 	net-firewall/iptables
 	net-misc/curl
 	net-misc/dhcp
-	net-misc/dhcpcd
+	net-misc/dhcpcd-legacy
 	net-wireless/wpa_supplicant-cros
 	nvme? ( sys-apps/nvme-cli )
 	sys-apps/coreutils
@@ -98,6 +97,7 @@ FACTORY_NETBOOT_DEPENDS="
 	chromeos-base/chromeos-installer
 	chromeos-base/chromeos-installshim
 	chromeos-base/chromeos-storage-info
+	chromeos-base/dlcservice
 	chromeos-base/ec-utils
 	chromeos-base/factory_installer
 	ufs? ( chromeos-base/factory_ufs )
@@ -111,6 +111,7 @@ FACTORY_NETBOOT_DEPENDS="
 	net-misc/uftp
 	net-misc/wget
 	sys-apps/coreutils
+	sys-apps/flashmap
 	sys-apps/flashrom
 	sys-apps/iproute2
 	sys-apps/util-linux
@@ -118,7 +119,26 @@ FACTORY_NETBOOT_DEPENDS="
 	sys-fs/e2fsprogs
 	sys-libs/ncurses
 	virtual/udev
+	amd64? ( sys-apps/coreboot-utils )
 	"
+
+DEPEND="
+	!no_factory_flow? (
+		factory_netboot_ramfs? ( ${FACTORY_NETBOOT_DEPENDS} )
+		factory_shim_ramfs? ( ${FACTORY_SHIM_DEPENDS} )
+	)
+	recovery_ramfs? ( ${RECOVERY_DEPENDS} )
+	minios_ramfs? ( ${MINIOS_DEPENDS} )
+	flexor_ramfs? ( ${FLEXOR_DEPENDS} )
+	sys-apps/busybox[-make-symlinks]
+	sys-fs/lvm2
+	chromeos-base/chromeos-init
+	sys-apps/frecon-lite
+	power_management? ( chromeos-base/power_manager )
+	unibuild? ( chromeos-base/chromeos-config )
+	chromeos-base/chromeos-config-tools
+"
+
 FYDEOS_DEPENDS="
        app-arch/lbzip2
        app-arch/pigz
@@ -152,25 +172,11 @@ FYDEOS_DEPENDS="
        sys-apps/pv
        app-shells/dash
        "
-
-DEPEND="
-	!no_factory_flow? (
-		factory_netboot_ramfs? ( ${FACTORY_NETBOOT_DEPENDS} )
-		factory_shim_ramfs? ( ${FACTORY_SHIM_DEPENDS} )
-	)
-	recovery_ramfs? ( ${RECOVERY_DEPENDS} )
-	minios_ramfs? ( ${MINIOS_DEPENDS} )
-	flexor_ramfs? ( ${FLEXOR_DEPENDS} )
+DEPEND="${DEPEND}
 	dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
 	core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
-	sys-apps/busybox[-make-symlinks]
-	sys-fs/lvm2
-	chromeos-base/chromeos-init
-	sys-apps/frecon-lite
-	power_management? ( chromeos-base/power_manager )
-	unibuild? ( chromeos-base/chromeos-config )
-	chromeos-base/chromeos-config-tools
-"
+  "
+
 
 RDEPEND=""
 
@@ -180,15 +186,7 @@ src_prepare() {
 
 	# Need the lddtree from the chromite dir.
 	export PATH="${CHROMITE_BIN_DIR}:${PATH}"
-  cp -r ${FILESDIR}/* ${S}
 
-  if ! use fydeos; then
-     cp "${S}/dual_boot/openfyde_dual_boot_mount.sh" "${S}/dual_boot/dual_boot_mount.sh"
-  else
-    cp "${S}/dual_boot/fydeos_dual_boot_mount.sh" "${S}/dual_boot/dual_boot_mount.sh"
-  fi
-
-  eapply ${FILESDIR}/factory_shim.patch
 	eapply_user
 }
 
@@ -220,6 +218,7 @@ src_compile() {
 			INCLUDE_ECTOOL="$(usex cros_ec_utils 1 0)" \
 			INCLUDE_FACTORY_UFS="$(usex ufs 1 0)" \
 			FACTORY_TPM_SCRIPT="${tpm_type}" \
+			INCLUDE_IFDTOOL="$(usex amd64 1 0)" \
 			INCLUDE_FIT_PICKER="$(usex device_tree 1 0)" \
 			INCLUDE_NVME_CLI="$(usex nvme 1 0)" \
 			LEGACY_UI="$(usex legacy_firmware_ui 1 0)" \

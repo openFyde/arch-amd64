@@ -19,6 +19,7 @@ IUSE="${IUSE} legacy_firmware_ui -mtd +power_management"
 IUSE="${IUSE} unibuild +oobe_config no_factory_flow"
 IUSE="${IUSE} nvme ufs"
 IUSE="${IUSE} cr50_onboard ti50_onboard tpm"
+IUSE="${IUSE} fydeos"
 
 # Build Targets
 TARGETS_IUSE="
@@ -28,6 +29,7 @@ TARGETS_IUSE="
 	minios_ramfs
 	flexor_ramfs
 "
+TARGETS_IUSE="${TARGETS_IUSE} dual_boot_ramfs core_util_ramfs"
 IUSE="${IUSE} test ${TARGETS_IUSE}"
 # Allow absence of the build target when running tests via cros_run_unit_tests.
 REQUIRED_USE="|| ( test ${TARGETS_IUSE} )"
@@ -59,7 +61,7 @@ MINIOS_DEPENDS="
 	net-firewall/iptables
 	net-misc/curl
 	net-misc/dhcp
-	net-misc/dhcpcd
+	net-misc/dhcpcd-legacy
 	net-wireless/wpa_supplicant-cros
 	nvme? ( sys-apps/nvme-cli )
 	sys-apps/coreutils
@@ -93,6 +95,7 @@ FACTORY_NETBOOT_DEPENDS="
 	chromeos-base/chromeos-installer
 	chromeos-base/chromeos-installshim
 	chromeos-base/chromeos-storage-info
+	chromeos-base/dlcservice
 	chromeos-base/ec-utils
 	chromeos-base/factory_installer
 	ufs? ( chromeos-base/factory_ufs )
@@ -106,6 +109,7 @@ FACTORY_NETBOOT_DEPENDS="
 	net-misc/uftp
 	net-misc/wget
 	sys-apps/coreutils
+	sys-apps/flashmap
 	sys-apps/flashrom
 	sys-apps/iproute2
 	sys-apps/util-linux
@@ -113,6 +117,7 @@ FACTORY_NETBOOT_DEPENDS="
 	sys-fs/e2fsprogs
 	sys-libs/ncurses
 	virtual/udev
+	amd64? ( sys-apps/coreboot-utils )
 	"
 
 DEPEND="
@@ -131,6 +136,45 @@ DEPEND="
 	unibuild? ( chromeos-base/chromeos-config )
 	chromeos-base/chromeos-config-tools
 "
+
+FYDEOS_DEPENDS="
+       app-arch/lbzip2
+       app-arch/pigz
+       app-arch/sharutils
+       app-misc/jq
+       app-shells/bash
+       chromeos-base/chromeos-base
+       chromeos-base/chromeos-installer
+       chromeos-base/chromeos-storage-info
+       chromeos-base/ec-utils
+       chromeos-base/factory_installer
+       chromeos-base/vboot_reference
+       chromeos-base/vpd
+       dev-libs/openssl
+       dev-util/shflags
+       dev-util/xxd
+       net-misc/curl
+       net-misc/htpdate
+       net-misc/wget
+       sys-apps/coreutils
+       sys-apps/flashrom
+       sys-apps/iproute2
+       sys-apps/mosys
+       sys-apps/util-linux
+       sys-block/parted
+       sys-fs/dosfstools
+       sys-fs/e2fsprogs
+       sys-libs/ncurses
+       sys-libs/efivar
+       sys-boot/efibootmgr
+       sys-apps/pv
+       app-shells/dash
+       "
+DEPEND="${DEPEND}
+	dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
+	core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
+  "
+
 
 RDEPEND=""
 
@@ -172,6 +216,7 @@ src_compile() {
 			INCLUDE_ECTOOL="$(usex cros_ec_utils 1 0)" \
 			INCLUDE_FACTORY_UFS="$(usex ufs 1 0)" \
 			FACTORY_TPM_SCRIPT="${tpm_type}" \
+			INCLUDE_IFDTOOL="$(usex amd64 1 0)" \
 			INCLUDE_FIT_PICKER="$(usex device_tree 1 0)" \
 			INCLUDE_NVME_CLI="$(usex nvme 1 0)" \
 			LEGACY_UI="$(usex legacy_firmware_ui 1 0)" \

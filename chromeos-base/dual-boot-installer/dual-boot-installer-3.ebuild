@@ -20,6 +20,7 @@ RDEPEND="
 	sys-apps/gptfdisk[-ncurses]
 	sys-block/parted
   sys-boot/efibootmgr
+  sys-apps/kmod
 "
 
 DEPEND="

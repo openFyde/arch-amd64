@@ -14,7 +14,7 @@ BIN_DEPS= \
 	/usr/sbin/factory_tty.sh
 
 # Extra dependency, should be set by builder configuration.
-EXTRA_BIN_DEPS?=
+EXTRA_BIN_DEPS ?=
 
 # Layout of directories to be created in initramfs.
 RAMFS_LAYOUT_DIRS=\
@@ -28,5 +28,5 @@ $(RAMFS_BIN): stage_init
 	cp $(SYSROOT)/lib/udev/rules.d/95-dm-notify.rules \
 		$(STAGE)/lib/udev/rules.d
 	cp bootstrap.sh $(STAGE)/bin
-	cp dual_boot_mount.sh $(STAGE)/bin 
+	cp dual_boot_mount.sh $(STAGE)/bin
 	$(call generate_ramfs)
