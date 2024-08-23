@@ -17,9 +17,8 @@ is_dualboot() {
   [ -n "$(grep fydeos_dualboot /proc/cmdline)" ]
 }
 
-is_openfyde() {
-  cat /etc/lsb-release | grep CHROMEOS_RELEASE_BOARD | grep -qi openfyde
-}
+DUAL_SCRIPT_DIR="/usr/share/dualboot"
+source $DUAL_SCRIPT_DIR/is_openfyde.sh
 
 get_dualboot_label() {
   if ! is_openfyde; then
