@@ -51,9 +51,9 @@ src_install() {
     insinto /usr/share/dualboot
 
     if use fydeos; then
-       doins -r "${dual_dir}/fydeos"
+      doins -r "${dual_dir}/fydeos"
     else
-       doins -r "${dual_dir}/openfyde"
+      doins -r "${dual_dir}/openfyde"
     fi
 
     doins -r ${dual_dir}/refind
@@ -61,15 +61,20 @@ src_install() {
     doins ${dual_dir}/script/BOOT.CSV
 
     if use fydeos; then
-       insinto /usr/share/dualboot/fydeos
+      insinto /usr/share/dualboot/fydeos
     else
-        insinto /usr/share/dualboot/openfyde
+      insinto /usr/share/dualboot/openfyde
     fi
 
     doins bootx64.efi
 
     exeinto /usr/share/dualboot
     doexe ${dual_dir}/script/*.sh
+    if use fydeos; then
+      newexe ${dual_dir}/script/is_openfyde/fydeos.sh is_openfyde.sh
+    else
+      newexe ${dual_dir}/script/is_openfyde/openfyde.sh is_openfyde.sh
+    fi
     doexe chromeos-install.sh
 
     insinto /usr/share/dualboot/initrd
