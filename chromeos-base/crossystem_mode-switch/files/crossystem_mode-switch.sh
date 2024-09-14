@@ -57,6 +57,9 @@ is_openfyde() {
   cat /etc/lsb-release | grep CHROMEOS_RELEASE_BOARD | grep -qi openfyde
 }
 
+# if /usr/share/dualboot/is_openfyde.sh exists, is_openfyde funciton above will be overridden
+[[ -f /usr/share/dualboot/is_openfyde.sh ]] && source /usr/share/dualboot/is_openfyde.sh
+
 find_grub_cfg() {
   local tmp_mnt=$(mktemp -d)
   local tmp_grub=$tmp_mnt
