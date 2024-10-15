@@ -30,7 +30,7 @@ main() {
     fi
   done
   sync
-  umount $dualboot_mnt
+  umount $dualboot_mnt || true
 }
 
 main $@
