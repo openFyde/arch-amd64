@@ -2,8 +2,8 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="7"
-CROS_WORKON_COMMIT="3e0cf984f4a96cd3ecadc3df847ca58c839d62db"
-CROS_WORKON_TREE="414f86a94beaecc20b234fe01dfabd80835c551a"
+CROS_WORKON_COMMIT="419612a16c5e8b4848666643a5157577bdf7d465"
+CROS_WORKON_TREE="09f4a57f21115d833427ffc19312afd602dc99d1"
 CROS_WORKON_PROJECT="chromiumos/platform/initramfs"
 CROS_WORKON_LOCALNAME="platform/initramfs"
 CROS_WORKON_OUTOFTREE_BUILD="1"
@@ -22,6 +22,7 @@ IUSE="${IUSE} unibuild +oobe_config no_factory_flow"
 IUSE="${IUSE} nvme ufs"
 IUSE="${IUSE} cr50_onboard ti50_onboard tpm"
 IUSE="${IUSE} fydeos"
+IUSE="${IUSE} lvm_stateful_partition"
 
 # Build Targets
 TARGETS_IUSE="
@@ -30,6 +31,7 @@ TARGETS_IUSE="
 	recovery_ramfs
 	minios_ramfs
 	flexor_ramfs
+	prod_ramfs
 "
 TARGETS_IUSE="${TARGETS_IUSE} dual_boot_ramfs core_util_ramfs"
 IUSE="${IUSE} test ${TARGETS_IUSE}"
@@ -78,6 +80,13 @@ FLEXOR_DEPENDS="
 	chromeos-base/chromeos-installer
 	chromeos-base/common-assets
 	chromeos-base/flexor
+"
+
+PROD_DEPENDS="
+	app-shells/bash
+	sys-apps/rootdev
+	sys-apps/coreutils
+	sys-apps/util-linux
 "
 
 # Packages required for building factory installer shim initramfs.
@@ -130,6 +139,7 @@ DEPEND="
 	recovery_ramfs? ( ${RECOVERY_DEPENDS} )
 	minios_ramfs? ( ${MINIOS_DEPENDS} )
 	flexor_ramfs? ( ${FLEXOR_DEPENDS} )
+	prod_ramfs? ( ${PROD_DEPENDS} )
 	sys-apps/busybox[-make-symlinks]
 	sys-fs/lvm2
 	chromeos-base/chromeos-init
@@ -223,6 +233,7 @@ src_compile() {
 			INCLUDE_NVME_CLI="$(usex nvme 1 0)" \
 			LEGACY_UI="$(usex legacy_firmware_ui 1 0)" \
 			LIBDIR="$(get_libdir)" \
+			LVM_STATEFUL="$(usex lvm_stateful_partition 1 0)" \
 			LOCALE_LIST="${RECOVERY_LOCALES:-}" \
 			OOBE_CONFIG="$(usex oobe_config 1 0)" \
 			OUTPUT_DIR="${WORKDIR}" EXTRA_BIN_DEPS="${deps[*]}" \

@@ -19,7 +19,7 @@ IUSE="${IUSE} legacy_firmware_ui -mtd +power_management"
 IUSE="${IUSE} unibuild +oobe_config no_factory_flow"
 IUSE="${IUSE} nvme ufs"
 IUSE="${IUSE} cr50_onboard ti50_onboard tpm"
-IUSE="${IUSE} fydeos"
+IUSE="${IUSE} lvm_stateful_partition"
 
 # Build Targets
 TARGETS_IUSE="
@@ -28,8 +28,8 @@ TARGETS_IUSE="
 	recovery_ramfs
 	minios_ramfs
 	flexor_ramfs
+	prod_ramfs
 "
-TARGETS_IUSE="${TARGETS_IUSE} dual_boot_ramfs core_util_ramfs"
 IUSE="${IUSE} test ${TARGETS_IUSE}"
 # Allow absence of the build target when running tests via cros_run_unit_tests.
 REQUIRED_USE="|| ( test ${TARGETS_IUSE} )"
@@ -76,6 +76,13 @@ FLEXOR_DEPENDS="
 	chromeos-base/chromeos-installer
 	chromeos-base/common-assets
 	chromeos-base/flexor
+"
+
+PROD_DEPENDS="
+	app-shells/bash
+	sys-apps/rootdev
+	sys-apps/coreutils
+	sys-apps/util-linux
 "
 
 # Packages required for building factory installer shim initramfs.
@@ -128,6 +135,7 @@ DEPEND="
 	recovery_ramfs? ( ${RECOVERY_DEPENDS} )
 	minios_ramfs? ( ${MINIOS_DEPENDS} )
 	flexor_ramfs? ( ${FLEXOR_DEPENDS} )
+	prod_ramfs? ( ${PROD_DEPENDS} )
 	sys-apps/busybox[-make-symlinks]
 	sys-fs/lvm2
 	chromeos-base/chromeos-init
@@ -136,45 +144,6 @@ DEPEND="
 	unibuild? ( chromeos-base/chromeos-config )
 	chromeos-base/chromeos-config-tools
 "
-
-FYDEOS_DEPENDS="
-       app-arch/lbzip2
-       app-arch/pigz
-       app-arch/sharutils
-       app-misc/jq
-       app-shells/bash
-       chromeos-base/chromeos-base
-       chromeos-base/chromeos-installer
-       chromeos-base/chromeos-storage-info
-       chromeos-base/ec-utils
-       chromeos-base/factory_installer
-       chromeos-base/vboot_reference
-       chromeos-base/vpd
-       dev-libs/openssl
-       dev-util/shflags
-       dev-util/xxd
-       net-misc/curl
-       net-misc/htpdate
-       net-misc/wget
-       sys-apps/coreutils
-       sys-apps/flashrom
-       sys-apps/iproute2
-       sys-apps/mosys
-       sys-apps/util-linux
-       sys-block/parted
-       sys-fs/dosfstools
-       sys-fs/e2fsprogs
-       sys-libs/ncurses
-       sys-libs/efivar
-       sys-boot/efibootmgr
-       sys-apps/pv
-       app-shells/dash
-       "
-DEPEND="${DEPEND}
-	dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
-	core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
-  "
-
 
 RDEPEND=""
 
@@ -221,6 +190,7 @@ src_compile() {
 			INCLUDE_NVME_CLI="$(usex nvme 1 0)" \
 			LEGACY_UI="$(usex legacy_firmware_ui 1 0)" \
 			LIBDIR="$(get_libdir)" \
+			LVM_STATEFUL="$(usex lvm_stateful_partition 1 0)" \
 			LOCALE_LIST="${RECOVERY_LOCALES:-}" \
 			OOBE_CONFIG="$(usex oobe_config 1 0)" \
 			OUTPUT_DIR="${WORKDIR}" EXTRA_BIN_DEPS="${deps[*]}" \
