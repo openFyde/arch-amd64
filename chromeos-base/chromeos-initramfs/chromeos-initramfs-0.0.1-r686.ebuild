@@ -21,6 +21,7 @@ IUSE="${IUSE} legacy_firmware_ui -mtd +power_management"
 IUSE="${IUSE} unibuild +oobe_config no_factory_flow"
 IUSE="${IUSE} nvme ufs"
 IUSE="${IUSE} cr50_onboard ti50_onboard tpm"
+IUSE="${IUSE} lvm_stateful_partition"
 IUSE="${IUSE} fydeos"
 IUSE="${IUSE} lvm_stateful_partition"
 
@@ -34,6 +35,7 @@ TARGETS_IUSE="
 	prod_ramfs
 "
 TARGETS_IUSE="${TARGETS_IUSE} dual_boot_ramfs core_util_ramfs"
+
 IUSE="${IUSE} test ${TARGETS_IUSE}"
 # Allow absence of the build target when running tests via cros_run_unit_tests.
 REQUIRED_USE="|| ( test ${TARGETS_IUSE} )"
@@ -183,10 +185,9 @@ FYDEOS_DEPENDS="
        app-shells/dash
        "
 DEPEND="${DEPEND}
-	dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
-	core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
+       dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
+       core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
   "
-
 
 RDEPEND=""
 

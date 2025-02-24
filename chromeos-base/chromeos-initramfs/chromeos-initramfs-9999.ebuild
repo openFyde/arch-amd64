@@ -20,6 +20,7 @@ IUSE="${IUSE} unibuild +oobe_config no_factory_flow"
 IUSE="${IUSE} nvme ufs"
 IUSE="${IUSE} cr50_onboard ti50_onboard tpm"
 IUSE="${IUSE} lvm_stateful_partition"
+IUSE="${IUSE} fydeos"
 
 # Build Targets
 TARGETS_IUSE="
@@ -144,6 +145,44 @@ DEPEND="
 	unibuild? ( chromeos-base/chromeos-config )
 	chromeos-base/chromeos-config-tools
 "
+
+FYDEOS_DEPENDS="
+       app-arch/lbzip2
+       app-arch/pigz
+       app-arch/sharutils
+       app-misc/jq
+       app-shells/bash
+       chromeos-base/chromeos-base
+       chromeos-base/chromeos-installer
+       chromeos-base/chromeos-storage-info
+       chromeos-base/ec-utils
+       chromeos-base/factory_installer
+       chromeos-base/vboot_reference
+       chromeos-base/vpd
+       dev-libs/openssl
+       dev-util/shflags
+       dev-util/xxd
+       net-misc/curl
+       net-misc/htpdate
+       net-misc/wget
+       sys-apps/coreutils
+       sys-apps/flashrom
+       sys-apps/iproute2
+       sys-apps/mosys
+       sys-apps/util-linux
+       sys-block/parted
+       sys-fs/dosfstools
+       sys-fs/e2fsprogs
+       sys-libs/ncurses
+       sys-libs/efivar
+       sys-boot/efibootmgr
+       sys-apps/pv
+       app-shells/dash
+       "
+DEPEND="${DEPEND}
+       dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
+       core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
+  "
 
 RDEPEND=""
 
