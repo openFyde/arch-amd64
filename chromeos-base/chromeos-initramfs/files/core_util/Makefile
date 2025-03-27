@@ -112,6 +112,7 @@ $(RAMFS_BIN): stage_init
 	for name in lsmod rmmod insmod modinfo modprobe depmod; do \
 	 ln -s kmod $(STAGE)/bin/$${name}; \
 	done
+	ln -s ../init $(STAGE)/bin/init
 	./kotree.sh usbnet $(SYSROOT) $(STAGE)
 	$(foreach rsrc, \
 	 $(wildcard $(SYSROOT)/var/lib/factory/resources/netboot*.tar), \

@@ -23,7 +23,6 @@ IUSE="${IUSE} nvme ufs"
 IUSE="${IUSE} cr50_onboard ti50_onboard tpm"
 IUSE="${IUSE} lvm_stateful_partition"
 IUSE="${IUSE} fydeos"
-IUSE="${IUSE} lvm_stateful_partition"
 
 # Build Targets
 TARGETS_IUSE="

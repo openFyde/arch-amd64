@@ -30,6 +30,8 @@ TARGETS_IUSE="
 	minios_ramfs
 	flexor_ramfs
 	prod_ramfs
+  dual_boot_ramfs
+  core_util_ramfs
 "
 IUSE="${IUSE} test ${TARGETS_IUSE}"
 # Allow absence of the build target when running tests via cros_run_unit_tests.

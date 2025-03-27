@@ -28,5 +28,6 @@ $(RAMFS_BIN): stage_init
 	cp $(SYSROOT)/lib/udev/rules.d/95-dm-notify.rules \
 		$(STAGE)/lib/udev/rules.d
 	cp bootstrap.sh $(STAGE)/bin
+	ln -s ../init $(STAGE)/bin/init
 	cp dual_boot_mount.sh $(STAGE)/bin
 	$(call generate_ramfs)

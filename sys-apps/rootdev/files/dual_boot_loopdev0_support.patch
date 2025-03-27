@@ -1,13 +1,14 @@
-diff --git a/rootdev.c b/rootdev.c
-index eae6212..c13cf79 100644
---- a/rootdev.c
-+++ b/rootdev.c
-@@ -173,7 +173,7 @@ static int match_sysfs_device(char *name, size_t name_len,
+Index: rootdev/rootdev.c
+===================================================================
+--- rootdev.orig/rootdev.c
++++ rootdev/rootdev.c
+@@ -173,7 +173,8 @@ static int match_sysfs_device(char *name
        break;
  
      /* Recurse one level for devices that may have a matching partition. */
 -    if (major(found_devt) == major(*dev) && minor(*dev) > minor(found_devt)) {
-+    if (!strcmp(entry->d_name, "loop0") ||  (major(found_devt) == major(*dev) && minor(*dev) > minor(found_devt))) {
++    if ((major(found_devt) == major(*dev) && minor(*dev) > minor(found_devt)) ||
++         !strncmp(entry->d_name, "loop", 4)) {
        sprintf(working_path, "%s/%s", basedir, entry->d_name);
        found = match_sysfs_device(name, name_len, working_path, dev, depth + 1);
        if (found > 0)
