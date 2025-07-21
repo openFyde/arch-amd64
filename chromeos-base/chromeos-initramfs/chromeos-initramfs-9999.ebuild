@@ -15,7 +15,7 @@ LICENSE="BSD-Google"
 SLOT="0"
 KEYWORDS="~*"
 IUSE="+cros_ec_utils detachable device_tree +interactive_recovery"
-IUSE="${IUSE} legacy_firmware_ui -mtd +power_management"
+IUSE="${IUSE} legacy_firmware_ui +power_management"
 IUSE="${IUSE} unibuild +oobe_config no_factory_flow"
 IUSE="${IUSE} nvme ufs"
 IUSE="${IUSE} cr50_onboard ti50_onboard tpm"
@@ -60,7 +60,7 @@ MINIOS_DEPENDS="
 	chromeos-base/update-utils
 	chromeos-base/vboot_reference
 	chromeos-base/vpd
-	dev-util/strace
+	dev-debug/strace
 	net-firewall/iptables
 	net-misc/curl
 	net-misc/dhcp
@@ -199,8 +199,7 @@ src_prepare() {
 }
 
 src_compile() {
-	local deps=()
-	use mtd && deps+=(/usr/bin/cgpt)
+	local deps=(/usr/bin/cgpt)
 	if use factory_netboot_ramfs; then
 		if ! use no_factory_flow; then
 			use power_management && deps+=(/usr/bin/backlight_tool)
