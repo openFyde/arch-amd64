@@ -2,8 +2,8 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="7"
-CROS_WORKON_COMMIT="419612a16c5e8b4848666643a5157577bdf7d465"
-CROS_WORKON_TREE="09f4a57f21115d833427ffc19312afd602dc99d1"
+CROS_WORKON_COMMIT="d03924e45d4ddd1f6151e551b0847f1a04d091bb"
+CROS_WORKON_TREE="23bdd020e28df50fdd5cf58bcd98a165ea376fe1"
 CROS_WORKON_PROJECT="chromiumos/platform/initramfs"
 CROS_WORKON_LOCALNAME="platform/initramfs"
 CROS_WORKON_OUTOFTREE_BUILD="1"
@@ -17,7 +17,7 @@ LICENSE="BSD-Google"
 SLOT="0"
 KEYWORDS="*"
 IUSE="+cros_ec_utils detachable device_tree +interactive_recovery"
-IUSE="${IUSE} legacy_firmware_ui -mtd +power_management"
+IUSE="${IUSE} legacy_firmware_ui +power_management"
 IUSE="${IUSE} unibuild +oobe_config no_factory_flow"
 IUSE="${IUSE} nvme ufs"
 IUSE="${IUSE} cr50_onboard ti50_onboard tpm"
@@ -26,15 +26,16 @@ IUSE="${IUSE} fydeos"
 
 # Build Targets
 TARGETS_IUSE="
+	desktop_recovery_ramfs
 	factory_netboot_ramfs
 	factory_shim_ramfs
 	recovery_ramfs
 	minios_ramfs
 	flexor_ramfs
 	prod_ramfs
+	dual_boot_ramfs
+	core_util_ramfs
 "
-TARGETS_IUSE="${TARGETS_IUSE} dual_boot_ramfs core_util_ramfs"
-
 IUSE="${IUSE} test ${TARGETS_IUSE}"
 # Allow absence of the build target when running tests via cros_run_unit_tests.
 REQUIRED_USE="|| ( test ${TARGETS_IUSE} )"
@@ -62,7 +63,7 @@ MINIOS_DEPENDS="
 	chromeos-base/update-utils
 	chromeos-base/vboot_reference
 	chromeos-base/vpd
-	dev-util/strace
+	dev-debug/strace
 	net-firewall/iptables
 	net-misc/curl
 	net-misc/dhcp
@@ -75,6 +76,10 @@ MINIOS_DEPENDS="
 	virtual/assets
 	virtual/chromeos-regions
 	"
+
+DESKTOP_RECOVERY_DEPENDS="
+	chromeos-base/desktop-recovery-installer
+"
 
 FLEXOR_DEPENDS="
 	app-shells/bash
@@ -139,6 +144,7 @@ DEPEND="
 	)
 	recovery_ramfs? ( ${RECOVERY_DEPENDS} )
 	minios_ramfs? ( ${MINIOS_DEPENDS} )
+	desktop_recovery_ramfs? ( ${DESKTOP_RECOVERY_DEPENDS} )
 	flexor_ramfs? ( ${FLEXOR_DEPENDS} )
 	prod_ramfs? ( ${PROD_DEPENDS} )
 	sys-apps/busybox[-make-symlinks]
@@ -151,42 +157,43 @@ DEPEND="
 "
 
 FYDEOS_DEPENDS="
-       app-arch/lbzip2
-       app-arch/pigz
-       app-arch/sharutils
-       app-misc/jq
-       app-shells/bash
-       chromeos-base/chromeos-base
-       chromeos-base/chromeos-installer
-       chromeos-base/chromeos-storage-info
-       chromeos-base/ec-utils
-       chromeos-base/factory_installer
-       chromeos-base/vboot_reference
-       chromeos-base/vpd
-       dev-libs/openssl
-       dev-util/shflags
-       dev-util/xxd
-       net-misc/curl
-       net-misc/htpdate
-       net-misc/wget
-       sys-apps/coreutils
-       sys-apps/flashrom
-       sys-apps/iproute2
-       sys-apps/mosys
-       sys-apps/util-linux
-       sys-block/parted
-       sys-fs/dosfstools
-       sys-fs/e2fsprogs
-       sys-libs/ncurses
-       sys-libs/efivar
-       sys-boot/efibootmgr
-       sys-apps/pv
-       app-shells/dash
-       "
+	app-arch/lbzip2
+	app-arch/pigz
+	app-arch/sharutils
+	app-misc/jq
+	app-shells/bash
+	chromeos-base/chromeos-base
+	chromeos-base/chromeos-installer
+	chromeos-base/chromeos-storage-info
+	chromeos-base/ec-utils
+	chromeos-base/factory_installer
+	chromeos-base/vboot_reference
+	chromeos-base/vpd
+	dev-libs/openssl
+	dev-util/shflags
+	dev-util/xxd
+	net-misc/curl
+	net-misc/htpdate
+	net-misc/wget
+	sys-apps/coreutils
+	sys-apps/flashrom
+	sys-apps/iproute2
+	sys-apps/mosys
+	sys-apps/util-linux
+	sys-block/parted
+	sys-fs/dosfstools
+	sys-fs/e2fsprogs
+	sys-libs/ncurses
+	sys-libs/efivar
+	sys-boot/efibootmgr
+	sys-apps/pv
+	app-shells/dash
+"
+
 DEPEND="${DEPEND}
-       dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
-       core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
-  "
+	dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
+	core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
+"
 
 RDEPEND=""
 
@@ -201,8 +208,7 @@ src_prepare() {
 }
 
 src_compile() {
-	local deps=()
-	use mtd && deps+=(/usr/bin/cgpt)
+	local deps=(/usr/bin/cgpt)
 	if use factory_netboot_ramfs; then
 		if ! use no_factory_flow; then
 			use power_management && deps+=(/usr/bin/backlight_tool)
