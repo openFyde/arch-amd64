@@ -13,3 +13,6 @@ USE="${USE} legacy_keyboard legacy_power_button sse"
 VIDEO_CARDS="intel i915 i965"
 
 USE="${USE} borealis_host"
+
+# Disable kdump
+USE="${USE} -kdump"
