@@ -24,14 +24,15 @@ IUSE="${IUSE} fydeos"
 
 # Build Targets
 TARGETS_IUSE="
+	desktop_recovery_ramfs
 	factory_netboot_ramfs
 	factory_shim_ramfs
 	recovery_ramfs
 	minios_ramfs
 	flexor_ramfs
 	prod_ramfs
-  dual_boot_ramfs
-  core_util_ramfs
+	dual_boot_ramfs
+	core_util_ramfs
 "
 IUSE="${IUSE} test ${TARGETS_IUSE}"
 # Allow absence of the build target when running tests via cros_run_unit_tests.
@@ -73,6 +74,15 @@ MINIOS_DEPENDS="
 	virtual/assets
 	virtual/chromeos-regions
 	"
+
+DESKTOP_RECOVERY_DEPENDS="
+	chromeos-base/chromeos-installer
+	chromeos-base/desktop-recovery-installer
+	chromeos-base/vboot_reference
+	sys-apps/flashrom
+	sys-apps/pv
+	virtual/chromeos-regions
+"
 
 FLEXOR_DEPENDS="
 	app-shells/bash
@@ -137,6 +147,7 @@ DEPEND="
 	)
 	recovery_ramfs? ( ${RECOVERY_DEPENDS} )
 	minios_ramfs? ( ${MINIOS_DEPENDS} )
+	desktop_recovery_ramfs? ( ${DESKTOP_RECOVERY_DEPENDS} )
 	flexor_ramfs? ( ${FLEXOR_DEPENDS} )
 	prod_ramfs? ( ${PROD_DEPENDS} )
 	sys-apps/busybox[-make-symlinks]
@@ -149,42 +160,43 @@ DEPEND="
 "
 
 FYDEOS_DEPENDS="
-       app-arch/lbzip2
-       app-arch/pigz
-       app-arch/sharutils
-       app-misc/jq
-       app-shells/bash
-       chromeos-base/chromeos-base
-       chromeos-base/chromeos-installer
-       chromeos-base/chromeos-storage-info
-       chromeos-base/ec-utils
-       chromeos-base/factory_installer
-       chromeos-base/vboot_reference
-       chromeos-base/vpd
-       dev-libs/openssl
-       dev-util/shflags
-       dev-util/xxd
-       net-misc/curl
-       net-misc/htpdate
-       net-misc/wget
-       sys-apps/coreutils
-       sys-apps/flashrom
-       sys-apps/iproute2
-       sys-apps/mosys
-       sys-apps/util-linux
-       sys-block/parted
-       sys-fs/dosfstools
-       sys-fs/e2fsprogs
-       sys-libs/ncurses
-       sys-libs/efivar
-       sys-boot/efibootmgr
-       sys-apps/pv
-       app-shells/dash
-       "
+	app-arch/lbzip2
+	app-arch/pigz
+	app-arch/sharutils
+	app-misc/jq
+	app-shells/bash
+	chromeos-base/chromeos-base
+	chromeos-base/chromeos-installer
+	chromeos-base/chromeos-storage-info
+	chromeos-base/ec-utils
+	chromeos-base/factory_installer
+	chromeos-base/vboot_reference
+	chromeos-base/vpd
+	dev-libs/openssl
+	dev-util/shflags
+	dev-util/xxd
+	net-misc/curl
+	net-misc/htpdate
+	net-misc/wget
+	sys-apps/coreutils
+	sys-apps/flashrom
+	sys-apps/iproute2
+	sys-apps/mosys
+	sys-apps/util-linux
+	sys-block/parted
+	sys-fs/dosfstools
+	sys-fs/e2fsprogs
+	sys-libs/ncurses
+	sys-libs/efivar
+	sys-boot/efibootmgr
+	sys-apps/pv
+	app-shells/dash
+"
+
 DEPEND="${DEPEND}
-       dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
-       core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
-  "
+	dual_boot_ramfs? ( ${FYDEOS_DEPENDS} )
+	core_util_ramfs? ( ${FYDEOS_DEPENDS} sys-apps/frecon-lite virtual/udev )
+"
 
 RDEPEND=""
 
