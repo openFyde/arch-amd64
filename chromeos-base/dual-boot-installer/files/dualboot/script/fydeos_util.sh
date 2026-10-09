@@ -9,7 +9,7 @@ FYDEOS_DUALBOOT_DIR="/fydeos"
 OPENFYDE_DUALBOOT_DIR="/openfyde"
 FYDEOS_DUALBOOT_IMG="/fydeos/fydeos_dual_boot.img"
 OPENFYDE_DUALBOOT_IMG="/openfyde/openfyde_dual_boot.img"
-VERSION="2.0.4"
+VERSION="2.0.5"
 FYDEOS_FINGERPRINT=".fydeos_dualboot"
 # test if system in dualboot mode
 set -e
