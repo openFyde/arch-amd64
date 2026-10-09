@@ -28,11 +28,16 @@ info() {
   echo "$@" | tee -a "${TTY}" "${LOG_FILE}"
 }
 
+# Call this directly as a condition. It must NOT be used as
+# `[ -n "$(is_fydeos_debug)" ]`: grep -q prints nothing, so the command
+# substitution is always empty and such a test is always false -- which silently
+# disabled set -x, set -e and the on_error trap below no matter what was on the
+# kernel command line.
 is_fydeos_debug() {
   grep -qw fydeos_debug /proc/cmdline 2>/dev/null
 }
 
-if [ -n "$(is_fydeos_debug)" ]; then
+if is_fydeos_debug; then
     set -x
 fi
 
@@ -238,7 +243,7 @@ main() {
   return 1
 }
 
-if [ -n "$(is_fydeos_debug)" ]; then
+if is_fydeos_debug; then
   trap on_error EXIT
   set -e
 fi

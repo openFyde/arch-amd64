@@ -58,6 +58,20 @@ get_cmdline() {
   cat /proc/cmdline
 }
 
+# Is the system doing the install running with cros_debug?
+#
+# get_extra_flags() only harvests what the *installed image's own* grub.cfg
+# happens to carry, so cros_debug reaches the generated cmdline by accident or
+# not at all -- that is why a FydeOS entry can have it while the openFyde one
+# built from the same templates does not. It matters more than it looks: the
+# dual_boot initramfs will not open a debug console without cros_debug
+# (enable_debug_console -> is_cros_debug), and since the templates ship
+# `console=` empty, a dualboot boot that fails then prints nothing at all.
+# So inherit it from the machine performing the install.
+has_cros_debug() {
+  get_cmdline | grep -qw cros_debug
+}
+
 clean_up() {
   if [ -n "$LOOPEFI_MNT" ]; then
     umount $LOOPEFI_MNT
@@ -121,6 +135,9 @@ _main() {
   local index=1
   for line in $(grep 'linux ' /tmp/${TPL} -n | awk 'BEGIN {FS= ":"} { print $1}'); do
     extra_flags=$(get_extra_flags $efi_grub_cfg $index)
+    if has_cros_debug && ! echo " ${extra_flags} " | grep -qw cros_debug; then
+      extra_flags="${extra_flags} cros_debug"
+    fi
     sed -i -E "${line}s#%EXTRA_FLAG%#${extra_flags}#g" /tmp/${TPL}
     index=$(($index + 1))
   done
