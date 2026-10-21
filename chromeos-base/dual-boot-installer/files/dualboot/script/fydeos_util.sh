@@ -346,7 +346,7 @@ safe_format() {
     umount "$partdev" || die "The partition is being used, abort..."
   fi
   info "Formatting partition:${partdev}..."
-  mkfs.ext2 -F "$partdev" || die "Safe format, mkfs error, abort."
+  mkfs.ext4 -F "$partdev" || die "Safe format, mkfs error, abort."
   info "Modifying multi-boot partition label..."
   set_dualboot_part "$partdev"
   info "Safe format ${partdev} done."
