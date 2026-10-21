@@ -36,6 +36,8 @@ get_dualboot_dev() {
 mount_dualboot_partiton() {
   local root=$1
   local dualboot_dev=$(get_dualboot_dev)
+  # Stdout of this function is captured by the caller as the new root path.
+  e2fsck -p "$dualboot_dev" >&2 || echo "e2fsck on $dualboot_dev returned $?" >&2
   mount $dualboot_dev $root
 }
 

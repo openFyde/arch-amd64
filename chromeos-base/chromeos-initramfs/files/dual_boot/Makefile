@@ -10,6 +10,7 @@ BIN_DEPS= \
 	/usr/bin/pv \
 	/sbin/blockdev \
 	/sbin/dumpe2fs \
+	/sbin/e2fsck \
 	/usr/sbin/partx \
 	/usr/sbin/factory_tty.sh
 
